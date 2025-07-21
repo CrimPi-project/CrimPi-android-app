@@ -27,6 +27,7 @@ import android.util.Log;
 import android.view.LayoutInflater; // Import for LayoutInflater
 import android.view.View;
 import android.view.ViewGroup; // Import for ViewGroup
+import android.widget.Button;
 import android.widget.ImageButton; // Import for ImageButton
 import android.widget.ImageView; // Import for ImageView
 import android.widget.ProgressBar; // Import for ProgressBar
@@ -235,6 +236,55 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private void disconnectFromDevice() {
+        if (bluetoothGatt == null) {
+            Log.w(TAG, "Attempted to disconnect, but bluetoothGatt is null.");
+            return;
+        }
+        // Check BLUETOOTH_CONNECT permission before calling disconnect (required for API 31+)
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "BLUETOOTH_CONNECT permission not granted for bluetoothGatt.disconnect().");
+            // Inform user if permission is missing, though this should ideally be handled earlier
+            return;
+        }
+        Log.i(TAG, "Disconnecting from GATT server.");
+        bluetoothGatt.disconnect(); // This will trigger onConnectionStateChange with STATE_DISCONNECTED
+        // The onConnectionStateChange callback will handle UI updates and closing bluetoothGatt.
+    }
+
+    // --- Disconnect Confirmation Dialog ---
+    private void showDisconnectConfirmationDialog() {
+        // Inflate the custom layout for the dialog
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_disconnect_confirmation, null);
+
+        // Find the buttons in the custom layout
+        Button buttonYes = dialogView.findViewById(R.id.buttonYes);
+        Button buttonNo = dialogView.findViewById(R.id.buttonNo);
+
+        // Create the AlertDialog
+        // IMPORTANT: We no longer use .setPositiveButton() or .setNegativeButton() here,
+        // as the buttons are now part of our custom layout.
+        AlertDialog disconnectDialog = new AlertDialog.Builder(this, R.style.AlertDialogTransparent)
+                .setView(dialogView) // Set the custom view for the dialog
+                .create(); // Create the dialog instance
+
+        // Set click listeners for the custom buttons
+        buttonYes.setOnClickListener(v -> {
+            // User clicked Yes, perform disconnect
+            disconnectFromDevice();
+            disconnectDialog.dismiss(); // Dismiss the dialog after action
+        });
+
+        buttonNo.setOnClickListener(v -> {
+            // User clicked No, just close the dialog
+            disconnectDialog.dismiss();
+        });
+
+        // Show the dialog
+        disconnectDialog.show();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -270,11 +320,31 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up Bluetooth button click listener to show scan dialog
         bluetoothButton.setOnClickListener(v -> {
-            if (checkAndRequestPermissions()) {
-                showScanDialog();
+            // Check if currently connected to a GATT server
+            // We need to check bluetoothGatt != null AND its connection state
+            // Also need BLUETOOTH_CONNECT permission to check connection state
+            if (bluetoothGatt != null &&
+                    ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                // Get BluetoothManager to check connection state
+                BluetoothManager manager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+                if (manager != null && manager.getConnectionState(bluetoothGatt.getDevice(), BluetoothProfile.GATT) == BluetoothProfile.STATE_CONNECTED) {
+                    // If connected, show disconnect confirmation dialog
+                    showDisconnectConfirmationDialog();
+                } else {
+                    // If bluetoothGatt is not null but state is not connected, treat as disconnected
+                    // This can happen if the peripheral disconnected but we haven't cleaned up bluetoothGatt yet
+                    Log.d(TAG, "bluetoothGatt exists but not connected. Proceeding to scan.");
+                    if (checkAndRequestPermissions()) {
+                        showScanDialog();
+                    }
+                }
+            } else {
+                // If bluetoothGatt is null (not connected), proceed to show scan dialog (existing logic)
+                if (checkAndRequestPermissions()) {
+                    showScanDialog();
+                }
             }
         });
-
         // Initialize RecyclerView adapter (empty initially)
         deviceAdapter = new DeviceAdapter(deviceList);
     }

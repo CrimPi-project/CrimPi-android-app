@@ -10,14 +10,33 @@
         <item name="colorSecondaryVariant">@color/primary_text_color</item>
         <item name="colorOnSecondary">@color/primary_text_color</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="buttonBarPositiveButtonStyle">@style/AlertDialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/AlertDialogButton</item>
         <!-- Customize your theme here. -->
     </style>
+
     <style name="DeviceListEntryText">
         <item name="android:textColor">@android:color/black</item>
-        <item name="android:background">@android:color/white</item> <!-- Ensure background is white if not already from dialog_holo_light_frame -->
+        <item name="android:background">@android:color/white
+        </item> <!-- Ensure background is white if not already from dialog_holo_light_frame -->
         <item name="android:padding">16dp</item> <!-- Matches padding in Java code -->
         <item name="android:textSize">16sp</item> <!-- Matches text size in Java code -->
+    </style>
+
+    <style name="AlertDialogButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/primary_text_color</item>
+    </style>
+
+    <style name="AlertDialogTransparent" parent="Theme.MaterialComponents.Light.Dialog.Alert">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true
+        </item> <!-- Keep dimming effect behind dialog -->
+        <item name="android:backgroundDimAmount">0.6
+        </item> <!-- Adjust dimming amount (0.0 to 1.0) -->
+        <!-- Ensure dialog buttons still use the AlertDialogButton style -->
+        <item name="buttonBarPositiveButtonStyle">@style/AlertDialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/AlertDialogButton</item>
     </style>
 </resources>
 

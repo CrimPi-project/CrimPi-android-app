@@ -15,4 +15,8 @@
     <string name="connection_attempt">Attempting to connect to %s</string>
     <string name="connection_attempt_permission_error">Attempting to connect to device (permission error displaying name)</string>
     <string name="units">units</string>
+    <string name="disconnect_dialog_title">Disconnect?</string>
+    <string name="disconnect_dialog_message">Are you sure you want to disconnect from the device?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>
