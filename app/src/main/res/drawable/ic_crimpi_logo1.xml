@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="128.57dp"
+    android:viewportWidth="140"
+    android:viewportHeight="180">
+
+    <!-- Paths extracted and transformed from the provided SVG (viewBox 0 0 140 180). -->
+    <!-- The logo's intrinsic aspect ratio (140:180) is maintained. -->
+    <!-- The android:width and android:height are set to 100dp x ~128.57dp -->
+    <!-- to allow the logo to be scaled and appear appropriately within Android layouts. -->
+    <!-- Stroke widths are set to 3.5dp for better visibility, as per previous successful iterations. -->
+
+    <!-- All paths from the SVG are now rendered as outlines with transparent fill, -->
+    <!-- consistent with the desired "outline only" appearance. -->
+
+    <!-- Main paths from SVG group with stroke="#FBF5EE" -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 86.00 47.00 C 85.25 24.93 66.84 4.82 44.00 4.00 C 41.50 12.66 43.23 21.11 47.08 28.92 C 50.92 36.74 52.90 38.34 59.75 45.25 C 66.61 52.15 74.12 45.33 66.25 38.75 C 58.38 32.17 60.12 27.09 57.00 19.00 C 72.51 25.03 81.59 41.46 80.00 58.00 C 72.86 53.97 64.11 54.30 57.00 58.00 C 41.75 36.42 5.72 58.54 17.00 82.00 C 6.89 88.63 3.86 106.24 14.00 114.00 C 6.10 124.57 9.51 142.77 23.00 147.00 C 11.42 168.63 48.32 189.15 60.00 168.00 C 73.59 181.06 99.82 172.07 99.00 152.00 C 112.49 151.72 122.24 138.23 120.00 125.00 C 142.74 123.70 142.87 83.02 119.00 84.00 C 117.50 71.16 101.60 62.23 90.00 69.00 C 89.04 66.57 87.42 64.30 85.00 63.00 C 87.53 57.53 91.11 50.96 95.75 46.75 C 100.39 42.53 103.42 36.07 109.77 33.77 C 116.12 31.47 120.09 21.52 112.00 20.00 C 103.91 18.49 101.13 27.07 95.75 30.75 C 90.38 34.43 87.93 41.49 86.00 47.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 50.00 64.00 C 46.97 70.67 44.17 78.51 47.00 86.00 C 36.97 90.45 24.60 84.60 25.79 72.77 C 26.97 60.94 41.05 56.37 50.00 64.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 73.00 66.00 C 86.76 70.18 79.75 95.71 64.78 92.22 C 49.81 88.73 54.31 60.33 73.00 66.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 103.00 76.00 C 117.55 80.42 109.10 105.08 94.33 99.67 C 79.56 94.26 87.64 71.34 103.00 76.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 32.00 96.00 C 29.71 100.36 27.35 104.76 28.00 110.00 C 17.54 111.08 15.69 96.88 22.00 91.00 C 25.64 91.92 28.20 95.23 32.00 96.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 104.00 107.00 C 110.98 106.04 117.44 99.84 119.00 93.00 C 127.94 95.05 129.95 105.64 124.25 112.25 C 118.54 118.86 105.13 116.54 104.00 107.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 58.00 119.00 C 50.60 124.36 37.54 120.03 37.01 110.99 C 36.48 101.95 41.36 94.30 52.07 96.93 C 62.79 99.55 56.95 110.83 58.00 119.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 81.00 101.00 C 97.42 103.80 91.58 131.24 75.33 126.67 C 59.08 122.10 65.18 98.31 81.00 101.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 29.00 118.00 C 30.08 121.75 34.12 125.37 38.00 126.00 C 37.57 130.37 35.08 134.25 36.00 139.00 C 22.06 145.78 11.75 118.21 29.00 118.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 108.00 124.00 C 116.62 137.87 94.18 150.21 87.00 135.00 C 92.27 131.66 99.44 127.48 99.00 120.00 C 102.44 120.22 104.27 124.59 108.00 124.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 61.00 126.00 C 70.22 131.94 73.66 146.78 60.92 150.92 C 48.19 155.07 40.16 138.73 47.00 129.00 C 52.14 129.63 56.68 127.92 61.00 126.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 66.00 159.00 C 71.00 153.61 79.97 147.57 78.00 138.00 C 80.68 145.40 92.25 148.74 87.69 157.69 C 83.14 166.65 71.57 164.94 66.00 159.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 38.00 147.00 C 28.50 147.46 29.80 160.39 36.31 164.69 C 42.81 169.00 52.20 166.74 55.00 159.00 C 47.73 158.67 39.58 154.51 38.00 147.00 Z" />
+
+    <!-- Paths from SVG group with fill="#FBF5EE" (These were previously filled, now transparent with stroke) -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 86.00 47.00 C 85.25 24.93 66.84 4.82 44.00 4.00 C 41.50 12.66 43.23 21.11 47.08 28.92 C 50.92 36.74 52.90 38.34 59.75 45.25 C 66.61 52.15 74.12 45.33 66.25 38.75 C 58.38 32.17 60.12 27.09 57.00 19.00 C 72.51 25.03 81.59 41.46 80.00 58.00 C 72.86 53.97 64.11 54.30 57.00 58.00 C 41.75 36.42 5.72 58.54 17.00 82.00 C 6.89 88.63 3.86 106.24 14.00 114.00 C 6.10 124.57 9.51 142.77 23.00 147.00 C 11.42 168.63 48.32 189.15 60.00 168.00 C 73.59 181.06 99.82 172.07 99.00 152.00 C 112.49 151.72 122.24 138.23 120.00 125.00 C 142.74 123.70 142.87 83.02 119.00 84.00 C 117.50 71.16 101.60 62.23 90.00 69.00 C 89.04 66.57 87.42 64.30 85.00 63.00 C 87.53 57.53 91.11 50.96 95.75 46.75 C 100.39 42.53 103.42 36.07 109.77 33.77 C 116.12 31.47 120.09 21.52 112.00 20.00 C 103.91 18.49 101.13 27.07 95.75 30.75 C 90.38 34.43 87.93 41.49 86.00 47.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 50.00 64.00 C 46.97 70.67 44.17 78.51 47.00 86.00 C 36.97 90.45 24.60 84.60 25.79 72.77 C 26.97 60.94 41.05 56.37 50.00 64.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 73.00 66.00 C 86.76 70.18 79.75 95.71 64.78 92.22 C 49.81 88.73 54.31 60.33 73.00 66.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 103.00 76.00 C 117.55 80.42 109.10 105.08 94.33 99.67 C 79.56 94.26 87.64 71.34 103.00 76.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 32.00 96.00 C 29.71 100.36 27.35 104.76 28.00 110.00 C 17.54 111.08 15.69 96.88 22.00 91.00 C 25.64 91.92 28.20 95.23 32.00 96.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 104.00 107.00 C 110.98 106.04 117.44 99.84 119.00 93.00 C 127.94 95.05 129.95 105.64 124.25 112.25 C 118.54 118.86 105.13 116.54 104.00 107.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 58.00 119.00 C 50.60 124.36 37.54 120.03 37.01 110.99 C 36.48 101.95 41.36 94.30 52.07 96.93 C 62.79 99.55 56.95 110.83 58.00 119.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 81.00 101.00 C 97.42 103.80 91.58 131.24 75.33 126.67 C 59.08 122.10 65.18 98.31 81.00 101.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 29.00 118.00 C 30.08 121.75 34.12 125.37 38.00 126.00 C 37.57 130.37 35.08 134.25 36.00 139.00 C 22.06 145.78 11.75 118.21 29.00 118.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 108.00 124.00 C 116.62 137.87 94.18 150.21 87.00 135.00 C 92.27 131.66 99.44 127.48 99.00 120.00 C 102.44 120.22 104.27 124.59 108.00 124.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 61.00 126.00 C 70.22 131.94 73.66 146.78 60.92 150.92 C 48.19 155.07 40.16 138.73 47.00 129.00 C 52.14 129.63 56.68 127.92 61.00 126.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 66.00 159.00 C 71.00 153.61 79.97 147.57 78.00 138.00 C 80.68 145.40 92.25 148.74 87.69 157.69 C 83.14 166.65 71.57 164.94 66.00 159.00 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 38.00 147.00 C 28.50 147.46 29.80 160.39 36.31 164.69 C 42.81 169.00 52.20 166.74 55.00 159.00 C 47.73 158.67 39.58 154.51 38.00 147.00 Z" />
+
+    <!-- Paths from SVG group with fill="#F9F3ED" (These were previously filled, now transparent with stroke) -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/white"
+        android:strokeWidth="3.5"
+        android:pathData="M 140.00 52.00 L 140.00 50.00 C 132.88 45.77 118.52 47.76 111.22 47.22 C 103.92 46.68 89.78 54.71 95.92 60.06 C 102.06 65.42 116.11 50.53 121.00 59.00 C 116.19 58.45 106.06 66.64 112.33 69.67 C 118.60 72.69 123.37 64.97 128.30 63.30 C 133.24 61.64 136.28 55.04 140.00 52.00 Z" />
+
+</vector>

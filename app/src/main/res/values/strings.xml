@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">CrimPi</string>
+    <string name="crimpi_connect">Please connect to a CrimPi device</string>
+    <string name="bluetooth_scan">Bluetooth Scan</string>
+    <string name="crimpi_logo">CrimPi Logo</string>
+    <string name="n_a">N/A</string>
+    <string name="scan_failed">Scan failed: </string>
+    <string name="try_again">. Please try again.</string>
+    <string name="bluetooth_not_supported">Bluetooth is not supported on this device.</string>
+    <string name="bluetooth_not_enabled">Bluetooth is not enabled. Please enable it."</string>
+    <string name="bluetooth_permissions_denied">Bluetooth permissions denied. Cannot scan.</string>
+    <string name="bluetooth_disabled">Bluetooth is disabled.</string>
+    <string name="scanner_not_available">Scanner not available.</string>
+    <string name="permissions_not_granted">Permissions not granted.</string>
+    <string name="connection_attempt">Attempting to connect to %s</string>
+    <string name="connection_attempt_permission_error">Attempting to connect to device (permission error displaying name)</string>
+    <string name="units">units</string>
+</resources>

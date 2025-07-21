@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="background_purple">#2C003E</color>
+    <color name="accent_purple_line">#6A1B9A</color>
+
+    <!-- Text & Icon Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="bluetooth_connected_blue">#2196F3</color>
+
+    <!-- Primary Navy Blue Palette -->
+    <color name="background_dark_navy">#1F2937</color> <!-- A very dark, almost black, navy for the main background -->
+    <color name="primary_navy">#2D3A4B</color>       <!-- A slightly lighter navy for general elements/cards -->
+    <color name="accent_blue_light">#5B93FF</color>  <!-- A vibrant, but not overpowering, blue for accents like lines, buttons, highlights -->
+    <color name="primary_text_color">#DAE0EE</color> <!-- Updated: Renamed from text_white to primary_text_color -->
+    <color name="text_light_gray">#B0B0B0</color>    <!-- Lighter gray for secondary text or subtle elements -->
+
+
+    <!-- Raspberry Pi Logo Colors (for reference, tint will override) -->
+    <color name="raspberry_pi_red">#C51A4A</color>
+    <color name="raspberry_pi_green">#82B62C</color>
+
+    <!-- Device List Pop-up Colors -->
+    <color name="device_list_background">#4A005E</color>
+    <color name="device_list_item_background">#5A006E</color> <!-- Slightly lighter for item background -->
+    <color name="device_list_text_color">@color/white</color>
+    <color name="device_connected_icon_green">@color/raspberry_pi_green</color>
+
+</resources>

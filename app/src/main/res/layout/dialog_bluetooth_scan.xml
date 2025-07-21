@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/primary_navy"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp">
+    <!-- Horizontal padding removed from here to allow the line to go full width -->
+
+    <!-- Dialog Title -->
+    <TextView
+        android:id="@+id/dialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select a CrimPi Device"
+        android:textColor="@color/primary_text_color"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:gravity="start"
+        android:paddingBottom="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp" />
+    <!-- Changed gravity to start to align text to the left -->
+
+    <!-- Horizontal Line beneath the title -->
+    <View
+        android:id="@+id/dialogTitleLine"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginTop="0dp"
+        android:background="@color/purple_200" />
+    <!-- Changed background color to accent_blue_light -->
+
+    <!-- Progress Bar for Scanning -->
+    <ProgressBar
+        android:id="@+id/scanProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:visibility="gone" /> <!-- Initially hidden, shown during scan -->
+
+    <!-- RecyclerView for Scanned Devices -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/deviceRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp" />
+    <!-- Added horizontal padding to the RecyclerView -->
+
+    <!-- No Devices Found Message -->
+    <TextView
+        android:id="@+id/noDevicesFoundText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No CrimPi devices found. Make sure the device is on and discoverable."
+        android:textColor="@color/primary_text_color"
+        android:textSize="16sp"
+        android:gravity="center_horizontal"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:visibility="gone" /> <!-- Initially hidden, shown if no devices are found -->
+
+</LinearLayout>
