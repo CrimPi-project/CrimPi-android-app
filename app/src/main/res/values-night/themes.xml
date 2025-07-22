@@ -20,4 +20,25 @@
         <item name="android:textColor">@color/primary_text_color</item>
     </style>
 
+    <style name="NavigationViewSectionHeader" parent="Widget.Design.NavigationView">
+        <item name="android:textColor">@color/primary_text_color</item>
+        <item name="android:textSize">22sp</item> <!-- Increased size -->
+        <item name="android:textStyle">bold</item> <!-- Make it bold for emphasis -->
+        <item name="android:paddingTop">16dp</item> <!-- Add some top padding -->
+        <item name="android:paddingBottom">8dp</item> <!-- Add some bottom padding -->
+        <item name="android:listDivider">@drawable/drawer_divider
+        </item> <!-- ADDED: Custom divider drawable -->
+        <item name="android:layoutDirection">ltr</item> <!-- Ensure LTR for icons -->
+    </style>
+
+    <style name="NavigationViewStyle" parent="Widget.MaterialComponents.NavigationView">
+        <item name="android:background">@color/primary_navy</item>
+        <item name="itemTextColor">@color/primary_text_color</item>
+        <item name="itemIconTint">@color/primary_text_color</item>
+        <item name="itemHorizontalPadding">16dp</item>
+        <item name="itemIconPadding">8dp</item>
+        <item name="android:listDivider">@color/purple_200</item> <!-- ADDED: Custom divider drawable -->
+        <item name="android:dividerHeight">1dp</item>
+        <item name="android:layoutDirection">ltr</item> <!-- Ensure LTR for icons -->
+    </style>
 </resources>

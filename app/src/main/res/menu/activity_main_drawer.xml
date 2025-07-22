@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_menu_home"
+            android:title="@string/home" />
+    </group>
+
+    <item
+        android:textAppearance="@style/NavigationViewSectionHeader"
+        android:title="@string/workouts">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/nav_freestyle_workout"
+                    android:icon="@drawable/ic_menu_freestyle"
+                    android:title="@string/freestyle_workout" />
+                <item
+                    android:id="@+id/nav_my_workouts"
+                    android:icon="@drawable/ic_menu_my_workouts"
+                    android:title="@string/my_workouts" />
+            </group> <!-- END: New checkable group -->
+        </menu>
+    </item>
+
+</menu>

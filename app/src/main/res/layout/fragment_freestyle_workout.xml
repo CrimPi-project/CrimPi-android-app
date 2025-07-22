@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_dark_navy"
+    tools:context=".FreestyleWorkoutFragment">
+
+    <!-- Start Button -->
+    <Button
+        android:id="@+id/startButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/start_workout"
+        android:textColor="@color/primary_text_color"
+        android:backgroundTint="@color/accent_blue_light"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:visibility="visible" /> <!-- Initially visible -->
+
+    <!-- TextView to display the countdown or received number -->
+    <TextView
+        android:id="@+id/freestyleReceivedNumberTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="@string/n_a"
+        android:textColor="@color/primary_text_color"
+        android:textSize="80sp"
+        android:textStyle="bold"
+        android:visibility="gone" /> <!-- Initially GONE -->
+
+    <!-- TextView for countdown display (optional, can reuse receivedNumberTextView) -->
+    <TextView
+        android:id="@+id/countdownTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textColor="@color/primary_text_color"
+        android:textSize="100sp"
+        android:textStyle="bold"
+        android:visibility="gone" /> <!-- Initially GONE -->
+
+</FrameLayout>

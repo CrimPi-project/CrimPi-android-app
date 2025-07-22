@@ -1,6 +1,8 @@
 // MainActivity.java
 package com.almogbb.crimpi;
 
+import com.google.android.material.navigation.NavigationView; // NEW
+
 import android.Manifest;
 import android.app.AlertDialog; // Import for AlertDialog
 import android.bluetooth.BluetoothAdapter;
@@ -35,13 +37,19 @@ import android.widget.Toast;
 import android.content.BroadcastReceiver; // NEW
 import android.content.Intent; // NEW
 import android.content.IntentFilter; // NEW
+import android.view.MenuItem; // NEW: For handling menu item selections
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager; // Import for LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView; // Import for RecyclerView
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.FragmentManager; // NEW: For managing fragments
+import androidx.fragment.app.FragmentTransaction; // NEW: For fragment transactions
 
 import com.almogbb.crimpi.adapters.DeviceAdapter;
 import com.almogbb.crimpi.data.BluetoothDeviceEntry;
@@ -63,7 +71,18 @@ public class MainActivity extends AppCompatActivity {
 
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner bluetoothLeScanner;
-    private BluetoothGatt bluetoothGatt;
+    public BluetoothGatt bluetoothGatt;
+
+    // NEW: Navigation Drawer elements
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private androidx.appcompat.widget.Toolbar toolbar; // Reference to the new Toolbar
+
+    // NEW: Reference to the HomeFragment instance
+    private HomeFragment homeFragment;
+    private FreestyleWorkoutFragment freestyleWorkoutFragment;
+    // NEW: Variable to keep track of the currently active fragment
+    private Fragment activeFragment;
 
     // Main screen UI elements
     private ImageButton bluetoothButton; // The Bluetooth icon button
@@ -129,36 +148,39 @@ public class MainActivity extends AppCompatActivity {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 Log.i(TAG, "Connected to GATT server.");
                 runOnUiThread(() -> {
-                    // Hide disconnected state UI, show connected state UI
+                    // Update Bluetooth button color
                     bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.bluetooth_connected_blue));
-                    centralLogoImageView.setVisibility(View.GONE);
-                    instructionTextView.setVisibility(View.GONE);
-                    receivedNumberTextView.setVisibility(View.VISIBLE);
+                    homeFragment.updateInstructionText(getString(R.string.connected_to_a_crimpi_device));
+
+                    // Update UI of the currently active fragment
+                    if (activeFragment instanceof HomeFragment) {
+                        ((HomeFragment) activeFragment).showConnectedStateUI();
+                    }
+                    // No specific connected state UI for Freestyle yet, but can be added
+                    // if (activeFragment instanceof FreestyleWorkoutFragment) { /* update UI */ }
                 });
-                // After connection, discover services
                 if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                     Log.e(TAG, "BLUETOOTH_CONNECT permission not granted for discoverServices.");
                     return;
                 }
-                gatt.discoverServices(); // Start GATT service discovery
+                gatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(TAG, "Disconnected from GATT server.");
                 runOnUiThread(() -> {
-                    // Show disconnected state UI, hide connected state UI
+                    // Update Bluetooth button color
                     bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.primary_text_color));
-                    centralLogoImageView.setVisibility(View.VISIBLE);
-                    instructionTextView.setText(R.string.crimpi_connect);
-                    instructionTextView.setVisibility(View.VISIBLE);
-                    receivedNumberTextView.setVisibility(View.GONE);
-                    receivedNumberTextView.setText("N/A"); // Reset display
+
+                    // Update UI of the currently active fragment
+                    if (activeFragment instanceof HomeFragment) {
+                        ((HomeFragment) activeFragment).showDisconnectedStateUI();
+                    } else if (activeFragment instanceof FreestyleWorkoutFragment) {
+                        ((FreestyleWorkoutFragment) activeFragment).updateReceivedNumber(getString(R.string.n_a)); // Reset display
+                    }
                 });
-                // Close GATT client and clear reference
                 if (bluetoothGatt != null) {
                     bluetoothGatt.close();
                     bluetoothGatt = null;
                 }
-                // Restart scan to allow re-connection (optional, but good practice)
-                // startBleScan(); // Removed auto-restart scan on disconnect for cleaner flow
             }
         }
 
@@ -166,26 +188,18 @@ public class MainActivity extends AppCompatActivity {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.i(TAG, "Services discovered.");
-                runOnUiThread(() -> {
-                });
-
-                // 1. Find and set up Temperature Characteristic (for receiving from Pico W)
                 BluetoothGattService envSenseService = gatt.getService(ENV_SENSE_SERVICE_UUID);
                 if (envSenseService != null) {
                     BluetoothGattCharacteristic tempCharacteristic = envSenseService.getCharacteristic(TEMPERATURE_CHARACTERISTIC_UUID);
                     if (tempCharacteristic != null) {
-                        // Enable notifications for temperature
                         if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                             Log.e(TAG, "BLUETOOTH_CONNECT permission not granted for setCharacteristicNotification.");
                             return;
                         }
                         gatt.setCharacteristicNotification(tempCharacteristic, true);
-
-                        // Write to the CCCD to enable notifications on the peripheral side
                         BluetoothGattDescriptor descriptor = tempCharacteristic.getDescriptor(CCCD_UUID);
                         if (descriptor != null) {
                             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                            // Perform the write operation for the descriptor
                             boolean writeSuccess = gatt.writeDescriptor(descriptor);
                             Log.d(TAG, "Subscribed to Temperature Characteristic notifications: " + writeSuccess);
                         } else {
@@ -197,11 +211,8 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Log.w(TAG, "Environmental Sensing Service not found: " + ENV_SENSE_SERVICE_UUID);
                 }
-
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
-                runOnUiThread(() -> {
-                });
             }
         }
 
@@ -209,16 +220,18 @@ public class MainActivity extends AppCompatActivity {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             // This is called when the Pico W sends a notification (e.g., new temperature)
             if (characteristic.getUuid().equals(TEMPERATURE_CHARACTERISTIC_UUID)) {
-                // Temperature is typically a 16-bit signed integer in 0.01 degree Celsius units
                 byte[] value = characteristic.getValue();
                 if (value != null && value.length >= 2) {
-                    // Use ByteBuffer to correctly interpret the little-endian 16-bit integer
                     int rawTemp = ByteBuffer.wrap(value).order(ByteOrder.LITTLE_ENDIAN).getShort();
                     float temperature = rawTemp / 100.0f;
 
                     runOnUiThread(() -> {
-                        // Fix: Use String.format with Locale.getDefault() to avoid implicit locale warning
-                        receivedNumberTextView.setText(String.format(Locale.getDefault(), "%.2f", temperature)); // Display only the number
+                        // NEW: Update the currently active fragment
+                        if (activeFragment instanceof HomeFragment) {
+                        } else if (activeFragment instanceof FreestyleWorkoutFragment) {
+                            ((FreestyleWorkoutFragment) activeFragment).updateReceivedNumber(String.format(Locale.getDefault(), "%.2f", temperature));
+                        }
+                        // Add more 'else if' for other fragments that need this data
                     });
                 }
             }
@@ -230,16 +243,13 @@ public class MainActivity extends AppCompatActivity {
             if (descriptor.getUuid().equals(CCCD_UUID)) {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     Log.d(TAG, "CCCD write successful. Notifications enabled.");
-                    runOnUiThread(() -> {
-                    });
                 } else {
                     Log.e(TAG, "CCCD write failed: " + status);
-                    runOnUiThread(() -> {
-                    });
                 }
             }
         }
     };
+
 
     private void disconnectFromDevice() {
         if (bluetoothGatt == null) {
@@ -318,17 +328,67 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private void updateBluetoothStatusUI() {
+        if (homeFragment == null) {
+            Log.w(TAG, "HomeFragment is null in updateBluetoothStatusUI. Cannot update UI.");
+            return;
+        }
+
         if (bluetoothAdapter == null) {
-            instructionTextView.setText(R.string.bluetooth_not_supported);
+            homeFragment.updateInstructionText(getString(R.string.bluetooth_not_supported));
             bluetoothButton.setEnabled(false);
+            bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.primary_text_color)); // Ensure disconnected color
+            homeFragment.showDisconnectedStateUI();
         } else if (!bluetoothAdapter.isEnabled()) {
-            instructionTextView.setText(R.string.bluetooth_not_enabled);
+            homeFragment.updateInstructionText(getString(R.string.bluetooth_not_enabled));
             bluetoothButton.setEnabled(false);
+            bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.primary_text_color)); // Ensure disconnected color
+            homeFragment.showDisconnectedStateUI();
         } else {
-            // Re-initialize scanner if it was null (e.g., after Bluetooth was off)
             bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-            instructionTextView.setText(R.string.crimpi_connect);
             bluetoothButton.setEnabled(true);
+
+            // NEW LOGIC: Check actual GATT connection state
+            boolean isConnected = false;
+            if (bluetoothGatt != null) {
+                try {
+                    // Requires BLUETOOTH_CONNECT permission
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                        BluetoothManager manager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+                        if (manager != null && bluetoothGatt.getDevice() != null) {
+                            if (manager.getConnectionState(bluetoothGatt.getDevice(), BluetoothProfile.GATT) == BluetoothProfile.STATE_CONNECTED) {
+                                isConnected = true;
+                            }
+                        }
+                    } else {
+                        Log.w(TAG, "BLUETOOTH_CONNECT permission not granted for checking GATT connection state in updateBluetoothStatusUI. Assuming disconnected.");
+                        // Fallback: If permission is denied, we can't reliably check, assume disconnected for safety
+                        isConnected = false;
+                    }
+                } catch (SecurityException e) {
+                    Log.e(TAG, "SecurityException checking GATT connection state in updateBluetoothStatusUI: " + e.getMessage());
+                    isConnected = false;
+                }
+            }
+
+            if (isConnected) {
+                String deviceDisplayName = "Unknown Device";
+                if (bluetoothGatt != null && bluetoothGatt.getDevice() != null) {
+                    try {
+                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                            deviceDisplayName = (bluetoothGatt.getDevice().getName() != null ? bluetoothGatt.getDevice().getName() : bluetoothGatt.getDevice().getAddress());
+                        }
+                    } catch (SecurityException e) {
+                        Log.e(TAG, "SecurityException getting device name for display in updateBluetoothStatusUI: " + e.getMessage());
+                    }
+                }
+                homeFragment.updateInstructionText(getString(R.string.connected_to_a_crimpi_device));
+                bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.bluetooth_connected_blue));
+                homeFragment.showConnectedStateUI(); // Ensure logo and text are visible
+            } else {
+                homeFragment.updateInstructionText(getString(R.string.crimpi_connect));
+                bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.primary_text_color));
+                homeFragment.showDisconnectedStateUI(); // Ensure logo and text are visible
+            }
         }
     }
 
@@ -337,11 +397,52 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize main screen UI elements
+        // Initialize Toolbar and set it as the ActionBar
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false); // Hide the default title
+            getSupportActionBar().setTitle(null); // Ensure title is null
+        }
+
+        // Initialize Navigation Drawer components
+        drawerLayout = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.nav_view);
+
+        // Initialize custom menu button and set its click listener
+        ImageButton menuButton = findViewById(R.id.menuButton);
+        menuButton.setOnClickListener(v -> {
+            if (drawerLayout.isDrawerOpen(navigationView)) {
+                drawerLayout.closeDrawer(navigationView);
+            } else {
+                drawerLayout.openDrawer(navigationView); // Open drawer from the side it's configured for (end/right)
+            }
+        });
+
+        // Set listener for navigation item clicks
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                // Handle navigation view item clicks here.
+                int id = item.getItemId();
+
+                if (id == R.id.nav_home) {
+                    loadFragment(homeFragment);
+                } else if (id == R.id.nav_freestyle_workout) {
+                    // NEW: Load Freestyle Workout Fragment
+                    loadFragment(freestyleWorkoutFragment);
+                } else if (id == R.id.nav_my_workouts) {
+                    // TODO: Load My Workouts Fragment (will create later)
+                    Toast.makeText(MainActivity.this, "My Workouts Clicked", Toast.LENGTH_SHORT).show();
+                }
+
+                drawerLayout.closeDrawer(navigationView); // Close the drawer after item selection
+                return true;
+            }
+        });
+
+        // Initialize main screen UI elements (bluetoothButton remains)
         bluetoothButton = findViewById(R.id.bluetoothButton);
-        centralLogoImageView = findViewById(R.id.centralLogoImageView);
-        instructionTextView = findViewById(R.id.instructionTextView);
-        receivedNumberTextView = findViewById(R.id.receivedNumberTextView);
 
         // Get Bluetooth services
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
@@ -349,54 +450,123 @@ public class MainActivity extends AppCompatActivity {
             bluetoothAdapter = bluetoothManager.getAdapter();
         }
 
-        // Check if Bluetooth is supported and enabled
-        if (bluetoothAdapter == null) {
-            // Bluetooth not supported, disable button and show message
-            instructionTextView.setText(R.string.bluetooth_not_supported);
-            bluetoothButton.setEnabled(false);
-        } else if (!bluetoothAdapter.isEnabled()) {
-            // Bluetooth not enabled, disable button and show message
-            instructionTextView.setText(R.string.bluetooth_not_enabled);
-            bluetoothButton.setEnabled(false);
-        } else {
-            // Bluetooth is ready, enable button
-            bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-            instructionTextView.setText(R.string.crimpi_connect); // Default instruction
-            bluetoothButton.setEnabled(true);
-        }
+        // Initialize RecyclerView adapter (empty initially)
+        deviceAdapter = new DeviceAdapter(deviceList, discoveredDevicesMap, this);
 
-        updateBluetoothStatusUI();
+        // NEW: Initialize both fragments and load the initial HomeFragment
+        if (savedInstanceState == null) { // Only add fragments if not recreating activity
+            homeFragment = new HomeFragment();
+            freestyleWorkoutFragment = new FreestyleWorkoutFragment(); // Instantiate Freestyle Fragment
+
+            // Load HomeFragment initially
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, homeFragment)
+                    .commit();
+            activeFragment = homeFragment; // Set active fragment
+            navigationView.setCheckedItem(R.id.nav_home);
+            updateBluetoothStatusUI(); // Update UI for the loaded fragment
+        } else {
+            // If activity is recreated, retrieve existing fragment instances
+            homeFragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            // We need to find the other fragment if it was previously loaded and re-attached
+            // For simplicity, we'll re-instantiate if not found, or manage state more robustly later.
+            // For now, assume homeFragment is the one found via fragment_container ID
+            // If you want to retain state for multiple fragments, you'd use findFragmentByTag
+            // and add/hide/show transactions instead of replace.
+            activeFragment = homeFragment; // Assuming HomeFragment is the default on recreate
+            // Re-instantiate freestyleWorkoutFragment if needed (or find by tag if it was added)
+            // For now, we'll just ensure it's not null if it needs to be accessed.
+            // A more robust solution for multiple fragments would involve a FragmentManager.findFragmentByTag
+            // and using .add()/.hide()/.show() instead of .replace().
+            // For this setup, we'll re-instantiate if it's null when needed.
+            if (freestyleWorkoutFragment == null) {
+                freestyleWorkoutFragment = new FreestyleWorkoutFragment();
+            }
+        }
 
         // Set up Bluetooth button click listener to show scan dialog
         bluetoothButton.setOnClickListener(v -> {
-            // Check if currently connected to a GATT server
-            // We need to check bluetoothGatt != null AND its connection state
-            // Also need BLUETOOTH_CONNECT permission to check connection state
-            if (bluetoothGatt != null &&
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-                // Get BluetoothManager to check connection state
-                BluetoothManager manager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-                if (manager != null && manager.getConnectionState(bluetoothGatt.getDevice(), BluetoothProfile.GATT) == BluetoothProfile.STATE_CONNECTED) {
-                    // If connected, show disconnect confirmation dialog
-                    showDisconnectConfirmationDialog();
-                } else {
-                    // If bluetoothGatt is not null but state is not connected, treat as disconnected
-                    // This can happen if the peripheral disconnected but we haven't cleaned up bluetoothGatt yet
-                    Log.d(TAG, "bluetoothGatt exists but not connected. Proceeding to scan.");
-                    if (checkAndRequestPermissions()) {
-                        showScanDialog();
+            // 1. Basic Bluetooth Adapter check
+            if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+                Toast.makeText(MainActivity.this, R.string.bluetooth_not_enabled, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // 2. Check permissions first for all BLE operations
+            if (!checkAndRequestPermissions()) {
+                return;
+            }
+
+            // Get the current bluetoothGatt instance *once* for this click event
+            final BluetoothGatt currentBluetoothGatt = bluetoothGatt;
+            BluetoothManager manager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+
+            // 3. Now that permissions are confirmed, determine if we are connected or should scan.
+            boolean isCurrentlyConnected = false;
+
+            if (manager != null && currentBluetoothGatt != null) {
+                try {
+                    BluetoothDevice device = currentBluetoothGatt.getDevice();
+                    if (device != null) {
+                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                            if (manager.getConnectionState(device, BluetoothProfile.GATT) == BluetoothProfile.STATE_CONNECTED) {
+                                isCurrentlyConnected = true;
+                            }
+                        } else {
+                            Log.w(TAG, "BLUETOOTH_CONNECT permission not granted for getConnectionState.");
+                        }
+                    } else {
+                        Log.w(TAG, "currentBluetoothGatt.getDevice() returned null. Treating as disconnected.");
                     }
-                }
-            } else {
-                // If bluetoothGatt is null (not connected), proceed to show scan dialog (existing logic)
-                if (checkAndRequestPermissions()) {
-                    showScanDialog();
+                } catch (SecurityException e) {
+                    Log.e(TAG, "SecurityException while checking GATT connection state: " + e.getMessage());
+                    Toast.makeText(MainActivity.this, "Permission error checking connection state.", Toast.LENGTH_SHORT).show();
+                } catch (NullPointerException e) {
+                    Log.e(TAG, "NullPointerException when accessing currentBluetoothGatt.getDevice() or getConnectionState: " + e.getMessage());
                 }
             }
+
+            if (isCurrentlyConnected) {
+                showDisconnectConfirmationDialog();
+            } else {
+                showScanDialog();
+            }
         });
-        // Initialize RecyclerView adapter (empty initially)
-        deviceAdapter = new DeviceAdapter(deviceList, discoveredDevicesMap, this);
     }
+
+    // Helper method to load fragments
+    private void loadFragment(Fragment fragment) {
+        if (fragment != null && activeFragment != fragment) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.fragment_container, fragment);
+            fragmentTransaction.commit();
+            activeFragment = fragment; // Update active fragment
+
+            // NEW: Set the checked state for the corresponding menu item in the NavigationView
+            if (navigationView != null) {
+                int menuItemId = -1;
+                if (fragment instanceof HomeFragment) {
+                    menuItemId = R.id.nav_home;
+                } else if (fragment instanceof FreestyleWorkoutFragment) {
+                    menuItemId = R.id.nav_freestyle_workout;
+                }
+                // Add more else if blocks for other fragments/menu items as needed
+                // For example: else if (fragment instanceof MyWorkoutsFragment) { menuItemId = R.id.nav_my_workouts; }
+
+                if (menuItemId != -1) {
+                    navigationView.setCheckedItem(menuItemId);
+                }
+            }
+
+
+            // Reset the state of the FreestyleWorkoutFragment if it's being loaded
+            if (activeFragment instanceof FreestyleWorkoutFragment) {
+                ((FreestyleWorkoutFragment) activeFragment).resetWorkoutState();
+            }
+        }
+    }
+
 
     // --- Permission Handling ---
     private boolean checkAndRequestPermissions() {
@@ -627,7 +797,6 @@ public class MainActivity extends AppCompatActivity {
     public void connectToDevice(BluetoothDevice device) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "BLUETOOTH_CONNECT permission not granted for connectGatt.");
-            Toast.makeText(this, "BLUETOOTH_CONNECT permission needed to connect.", Toast.LENGTH_SHORT).show();
             return;
         }
         // If already connected, close previous connection
@@ -640,19 +809,23 @@ public class MainActivity extends AppCompatActivity {
             bluetoothGatt = device.connectGatt(this, false, gattCallback); // 'false' for direct connection
         } catch (SecurityException e) {
             Log.e(TAG, "SecurityException: Missing BLUETOOTH_CONNECT permission for connectGatt.", e);
-            Toast.makeText(this, "Permission error: Cannot connect to device.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         runOnUiThread(() -> {
             try {
-                // Update main screen status
-                instructionTextView.setText(getString(R.string.connection_attempt,
-                        (device.getName() != null ? device.getName() : device.getAddress())));
+                // Update instruction text in the active fragment
+                String deviceDisplayName = (device.getName() != null ? device.getName() : device.getAddress());
+                if (activeFragment instanceof HomeFragment) {
+                    ((HomeFragment) activeFragment).updateInstructionText(getString(R.string.connection_attempt, deviceDisplayName));
+                }
             } catch (SecurityException e) {
                 Log.e(TAG, "SecurityException: Cannot get device name/address for UI update.", e);
-                instructionTextView.setText(R.string.connection_attempt_permission_error);
-                Toast.makeText(MainActivity.this, "Permission error: Cannot display device name.", Toast.LENGTH_SHORT).show();
+                runOnUiThread(() -> {
+                    if (activeFragment instanceof HomeFragment) {
+                        ((HomeFragment) activeFragment).updateInstructionText(getString(R.string.connection_attempt_permission_error));
+                    }
+                });
             }
         });
 

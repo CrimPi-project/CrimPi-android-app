@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_dark_navy"
+    tools:context=".HomeFragment">
+
+    <!-- Disconnected State: Central Logo/Icon -->
+    <ImageView
+        android:id="@+id/centralLogoImageView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="250dp"
+        android:contentDescription="@string/crimpi_logo"
+        android:src="@drawable/ic_crimpi_logo"
+        android:visibility="visible"
+        app:tint="@color/primary_text_color"
+        android:scaleType="fitCenter"/>
+
+    <!-- Disconnected State: Instruction Text -->
+    <TextView
+        android:id="@+id/instructionTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="380dp"
+        android:gravity="center"
+        android:text="@string/crimpi_connect"
+        android:textColor="@color/primary_text_color"
+        android:textSize="20sp"
+        android:textStyle="normal"
+        android:visibility="visible" />
+
+</FrameLayout>

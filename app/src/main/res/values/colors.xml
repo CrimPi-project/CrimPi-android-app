@@ -19,6 +19,7 @@
     <color name="accent_blue_light">#5B93FF</color>  <!-- A vibrant, but not overpowering, blue for accents like lines, buttons, highlights -->
     <color name="primary_text_color">#DAE0EE</color> <!-- Updated: Renamed from text_white to primary_text_color -->
     <color name="text_light_gray">#B0B0B0</color>    <!-- Lighter gray for secondary text or subtle elements -->
+    <color name="accent_blue_light_translucent">#335B93FF</color>
 
 
     <!-- Raspberry Pi Logo Colors (for reference, tint will override) -->

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- State when the item is checked (selected) -->
+    <item android:state_checked="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/accent_blue_light_translucent" />
+            <corners android:radius="8dp" /> <!-- Apply rounded corners to the highlight -->
+        </shape>
+    </item>
+    <!-- Default state (not checked) - transparent background -->
+    <item android:drawable="@android:color/transparent" />
+</selector>

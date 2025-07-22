@@ -19,4 +19,13 @@
     <string name="disconnect_dialog_message">Are you sure you want to disconnect from the device?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="home">Home</string>
+    <string name="workouts">Workouts</string>
+    <string name="freestyle_workout">Freestyle workout</string>
+    <string name="my_workouts">My workouts</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="start_workout">Start Workout</string>
+    <string name="connected_to_a_crimpi_device">Connected to a CrimPi device!</string>
+    <string name="not_connected_to_a_crimpi_device_please_connect">Not connected to a CrimPi device. Please connect</string>
 </resources>
