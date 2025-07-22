@@ -1,5 +1,5 @@
 // MainActivity.java
-package com.almogbb.crimpi; // IMPORTANT: Ensure this package name matches your project's package name
+package com.almogbb.crimpi;
 
 import android.Manifest;
 import android.app.AlertDialog; // Import for AlertDialog
@@ -26,13 +26,15 @@ import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.LayoutInflater; // Import for LayoutInflater
 import android.view.View;
-import android.view.ViewGroup; // Import for ViewGroup
 import android.widget.Button;
 import android.widget.ImageButton; // Import for ImageButton
 import android.widget.ImageView; // Import for ImageView
 import android.widget.ProgressBar; // Import for ProgressBar
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.BroadcastReceiver; // NEW
+import android.content.Intent; // NEW
+import android.content.IntentFilter; // NEW
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,6 +42,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager; // Import for LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView; // Import for RecyclerView
+
+import com.almogbb.crimpi.adapters.DeviceAdapter;
+import com.almogbb.crimpi.data.BluetoothDeviceEntry;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -285,6 +290,48 @@ public class MainActivity extends AppCompatActivity {
         disconnectDialog.show();
     }
 
+    private final BroadcastReceiver bluetoothStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+                switch (state) {
+                    case BluetoothAdapter.STATE_OFF:
+                        Log.d(TAG, "Bluetooth: STATE_OFF");
+                        updateBluetoothStatusUI(); // Update UI when Bluetooth is off
+                        break;
+                    case BluetoothAdapter.STATE_TURNING_OFF:
+                        Log.d(TAG, "Bluetooth: STATE_TURNING_OFF");
+                        break;
+                    case BluetoothAdapter.STATE_ON:
+                        Log.d(TAG, "Bluetooth: STATE_ON");
+                        updateBluetoothStatusUI(); // Update UI when Bluetooth is on
+                        break;
+                    case BluetoothAdapter.STATE_TURNING_ON:
+                        Log.d(TAG, "Bluetooth: STATE_TURNING_ON");
+                        break;
+                }
+            }
+        }
+    };
+
+    private void updateBluetoothStatusUI() {
+        if (bluetoothAdapter == null) {
+            instructionTextView.setText(R.string.bluetooth_not_supported);
+            bluetoothButton.setEnabled(false);
+        } else if (!bluetoothAdapter.isEnabled()) {
+            instructionTextView.setText(R.string.bluetooth_not_enabled);
+            bluetoothButton.setEnabled(false);
+        } else {
+            // Re-initialize scanner if it was null (e.g., after Bluetooth was off)
+            bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
+            instructionTextView.setText(R.string.crimpi_connect);
+            bluetoothButton.setEnabled(true);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -318,6 +365,8 @@ public class MainActivity extends AppCompatActivity {
             bluetoothButton.setEnabled(true);
         }
 
+        updateBluetoothStatusUI();
+
         // Set up Bluetooth button click listener to show scan dialog
         bluetoothButton.setOnClickListener(v -> {
             // Check if currently connected to a GATT server
@@ -346,7 +395,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         // Initialize RecyclerView adapter (empty initially)
-        deviceAdapter = new DeviceAdapter(deviceList);
+        deviceAdapter = new DeviceAdapter(deviceList, discoveredDevicesMap, this);
     }
 
     // --- Permission Handling ---
@@ -575,7 +624,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // --- Connection Logic ---
-    private void connectToDevice(BluetoothDevice device) {
+    public void connectToDevice(BluetoothDevice device) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "BLUETOOTH_CONNECT permission not granted for connectGatt.");
             Toast.makeText(this, "BLUETOOTH_CONNECT permission needed to connect.", Toast.LENGTH_SHORT).show();
@@ -614,6 +663,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        // Unregister the BroadcastReceiver when the activity is paused
+        unregisterReceiver(bluetoothStateReceiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Register the BroadcastReceiver when the activity is resumed
+        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(bluetoothStateReceiver, filter);
+        // Also update UI in case Bluetooth state changed while app was paused
+        updateBluetoothStatusUI();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         stopBleScan(); // Ensure scan is stopped when activity is destroyed
@@ -624,77 +690,6 @@ public class MainActivity extends AppCompatActivity {
             }
             bluetoothGatt.close();
             bluetoothGatt = null;
-        }
-    }
-
-    // --- RecyclerView Adapter and ViewHolder Classes ---
-
-    // Data class to hold device information for the RecyclerView
-    private static class BluetoothDeviceEntry {
-        String name;
-        String address;
-
-        BluetoothDeviceEntry(String name, String address) {
-            this.name = name;
-            this.address = address;
-        }
-    }
-
-    // Adapter for the RecyclerView
-    private class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceViewHolder> {
-
-        private final List<BluetoothDeviceEntry> localDeviceList;
-
-        public DeviceAdapter(List<BluetoothDeviceEntry> deviceList) {
-            this.localDeviceList = deviceList;
-        }
-
-        @NonNull
-        @Override
-        public DeviceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            // Inflate the item_bluetooth_device.xml layout for each item
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_bluetooth_device, parent, false);
-            return new DeviceViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull DeviceViewHolder holder, int position) {
-            BluetoothDeviceEntry device = localDeviceList.get(position);
-            holder.deviceName.setText(device.name);
-            // The deviceLogo ImageView is already in item_bluetooth_device.xml
-            // No need to set address text as per updated item_bluetooth_device.xml
-        }
-
-        @Override
-        public int getItemCount() {
-            return localDeviceList.size();
-        }
-
-        // ViewHolder for each device item
-        class DeviceViewHolder extends RecyclerView.ViewHolder {
-            ImageView deviceLogo; // The ImageView for the logo
-            TextView deviceName;
-
-            DeviceViewHolder(@NonNull View itemView) {
-                super(itemView);
-                deviceLogo = itemView.findViewById(R.id.deviceLogo);
-                deviceName = itemView.findViewById(R.id.deviceName);
-
-                // Set click listener for the entire item view
-                itemView.setOnClickListener(v -> {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        BluetoothDeviceEntry selectedEntry = localDeviceList.get(position);
-                        // Retrieve the actual BluetoothDevice object from the map
-                        BluetoothDevice deviceToConnect = discoveredDevicesMap.get(selectedEntry.address);
-                        if (deviceToConnect != null) {
-                            connectToDevice(deviceToConnect);
-                        } else {
-                            Toast.makeText(MainActivity.this, "Error: Device object not found.", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            }
         }
     }
 }
