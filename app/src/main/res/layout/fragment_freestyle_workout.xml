@@ -1,27 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_dark_navy"
-    tools:context=".FreestyleWorkoutFragment">
+    tools:context=".fragments.FreestyleWorkoutFragment">
 
     <!-- Start Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/startButton"
+        style="@style/RoundedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="@string/start_workout"
-        android:textColor="@color/primary_text_color"
-        android:backgroundTint="@color/accent_blue_light"
-        android:paddingStart="32dp"
-        android:paddingEnd="32dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="16dp"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:visibility="visible" /> <!-- Initially visible -->
+        android:text="@string/start_workout" />
 
     <!-- TextView to display the countdown or received number -->
     <TextView

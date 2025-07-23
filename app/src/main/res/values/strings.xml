@@ -27,5 +27,5 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="start_workout">Start Workout</string>
     <string name="connected_to_a_crimpi_device">Connected to a CrimPi device!</string>
-    <string name="not_connected_to_a_crimpi_device_please_connect">Not connected to a CrimPi device. Please connect</string>
+    <string name="not_connected_to_a_crimpi_device_please_connect">Not connected to a CrimPi device. Please connect.</string>
 </resources>

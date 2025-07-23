@@ -1,8 +1,7 @@
 // FreestyleWorkoutFragment.java
-package com.almogbb.crimpi;
+package com.almogbb.crimpi.fragments;
 
 import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
@@ -22,12 +21,15 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.almogbb.crimpi.MainActivity;
+import com.almogbb.crimpi.R;
+
 public class FreestyleWorkoutFragment extends Fragment {
 
     private Button startButton;
     private TextView receivedNumberTextView;
     private TextView countdownTextView; // New TextView for countdown
-    private Handler handler = new Handler(Looper.getMainLooper()); // Handler for countdown
+    private final Handler handler = new Handler(Looper.getMainLooper()); // Handler for countdown
     private int countdownValue = 3; // Initial countdown value
     private boolean workoutStarted = false; // Flag to indicate if workout is active
 

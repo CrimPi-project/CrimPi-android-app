@@ -57,9 +57,24 @@
         <item name="itemIconTint">@color/primary_text_color</item>
         <item name="itemHorizontalPadding">16dp</item>
         <item name="itemIconPadding">8dp</item>
-        <item name="android:listDivider">@color/purple_200</item> <!-- ADDED: Custom divider drawable -->
+        <item name="android:listDivider">@color/purple_200
+        </item> <!-- ADDED: Custom divider drawable -->
         <item name="android:dividerHeight">1dp</item>
         <item name="android:layoutDirection">ltr</item> <!-- Ensure LTR for icons -->
     </style>
+
+    <style name="RoundedButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:textColor">@color/primary_text_color</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="backgroundTint">@color/accent_blue_light_translucent</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:visibility">visible</item>
+    </style>
+
 </resources>
 

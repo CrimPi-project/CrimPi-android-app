@@ -1,6 +1,8 @@
 // MainActivity.java
 package com.almogbb.crimpi;
 
+import com.almogbb.crimpi.fragments.FreestyleWorkoutFragment;
+import com.almogbb.crimpi.fragments.HomeFragment;
 import com.google.android.material.navigation.NavigationView; // NEW
 
 import android.Manifest;
@@ -30,14 +32,12 @@ import android.view.LayoutInflater; // Import for LayoutInflater
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton; // Import for ImageButton
-import android.widget.ImageView; // Import for ImageView
 import android.widget.ProgressBar; // Import for ProgressBar
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.BroadcastReceiver; // NEW
 import android.content.Intent; // NEW
 import android.content.IntentFilter; // NEW
-import android.view.MenuItem; // NEW: For handling menu item selections
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -46,7 +46,6 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager; // Import for LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView; // Import for RecyclerView
-import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager; // NEW: For managing fragments
 import androidx.fragment.app.FragmentTransaction; // NEW: For fragment transactions
@@ -76,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
     // NEW: Navigation Drawer elements
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
-    private androidx.appcompat.widget.Toolbar toolbar; // Reference to the new Toolbar
 
     // NEW: Reference to the HomeFragment instance
     private HomeFragment homeFragment;
@@ -86,9 +84,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Main screen UI elements
     private ImageButton bluetoothButton; // The Bluetooth icon button
-    private ImageView centralLogoImageView; // CrimPi logo
-    private TextView instructionTextView; // "Please connect to a CrimPi device"
-    private TextView receivedNumberTextView; // Displays received temperature
 
     // Dialog UI elements (will be found when dialog is created)
     private AlertDialog scanDialog;
@@ -227,8 +222,7 @@ public class MainActivity extends AppCompatActivity {
 
                     runOnUiThread(() -> {
                         // NEW: Update the currently active fragment
-                        if (activeFragment instanceof HomeFragment) {
-                        } else if (activeFragment instanceof FreestyleWorkoutFragment) {
+                        if (activeFragment instanceof FreestyleWorkoutFragment) {
                             ((FreestyleWorkoutFragment) activeFragment).updateReceivedNumber(String.format(Locale.getDefault(), "%.2f", temperature));
                         }
                         // Add more 'else if' for other fragments that need this data
@@ -362,25 +356,13 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         Log.w(TAG, "BLUETOOTH_CONNECT permission not granted for checking GATT connection state in updateBluetoothStatusUI. Assuming disconnected.");
                         // Fallback: If permission is denied, we can't reliably check, assume disconnected for safety
-                        isConnected = false;
                     }
                 } catch (SecurityException e) {
                     Log.e(TAG, "SecurityException checking GATT connection state in updateBluetoothStatusUI: " + e.getMessage());
-                    isConnected = false;
                 }
             }
 
             if (isConnected) {
-                String deviceDisplayName = "Unknown Device";
-                if (bluetoothGatt != null && bluetoothGatt.getDevice() != null) {
-                    try {
-                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-                            deviceDisplayName = (bluetoothGatt.getDevice().getName() != null ? bluetoothGatt.getDevice().getName() : bluetoothGatt.getDevice().getAddress());
-                        }
-                    } catch (SecurityException e) {
-                        Log.e(TAG, "SecurityException getting device name for display in updateBluetoothStatusUI: " + e.getMessage());
-                    }
-                }
                 homeFragment.updateInstructionText(getString(R.string.connected_to_a_crimpi_device));
                 bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.bluetooth_connected_blue));
                 homeFragment.showConnectedStateUI(); // Ensure logo and text are visible
@@ -398,7 +380,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Initialize Toolbar and set it as the ActionBar
-        toolbar = findViewById(R.id.toolbar);
+        // Reference to the new Toolbar
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayShowTitleEnabled(false); // Hide the default title
@@ -420,25 +403,22 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Set listener for navigation item clicks
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                // Handle navigation view item clicks here.
-                int id = item.getItemId();
+        navigationView.setNavigationItemSelectedListener(item -> {
+            // Handle navigation view item clicks here.
+            int id = item.getItemId();
 
-                if (id == R.id.nav_home) {
-                    loadFragment(homeFragment);
-                } else if (id == R.id.nav_freestyle_workout) {
-                    // NEW: Load Freestyle Workout Fragment
-                    loadFragment(freestyleWorkoutFragment);
-                } else if (id == R.id.nav_my_workouts) {
-                    // TODO: Load My Workouts Fragment (will create later)
-                    Toast.makeText(MainActivity.this, "My Workouts Clicked", Toast.LENGTH_SHORT).show();
-                }
-
-                drawerLayout.closeDrawer(navigationView); // Close the drawer after item selection
-                return true;
+            if (id == R.id.nav_home) {
+                loadFragment(homeFragment);
+            } else if (id == R.id.nav_freestyle_workout) {
+                // NEW: Load Freestyle Workout Fragment
+                loadFragment(freestyleWorkoutFragment);
+            } else if (id == R.id.nav_my_workouts) {
+                // TODO: Load My Workouts Fragment (will create later)
+                Toast.makeText(MainActivity.this, "My Workouts Clicked", Toast.LENGTH_SHORT).show();
             }
+
+            drawerLayout.closeDrawer(navigationView); // Close the drawer after item selection
+            return true;
         });
 
         // Initialize main screen UI elements (bluetoothButton remains)
@@ -605,7 +585,6 @@ public class MainActivity extends AppCompatActivity {
                 showScanDialog();
             } else {
                 // Permissions denied
-                instructionTextView.setText("");
                 bluetoothButton.setEnabled(false);
                 Toast.makeText(this, R.string.bluetooth_permissions_denied, Toast.LENGTH_LONG).show();
             }

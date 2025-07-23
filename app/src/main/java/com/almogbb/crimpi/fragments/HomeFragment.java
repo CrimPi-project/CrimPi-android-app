@@ -1,5 +1,5 @@
 // HomeFragment.java
-package com.almogbb.crimpi;
+package com.almogbb.crimpi.fragments;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -19,12 +19,14 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.almogbb.crimpi.MainActivity;
+import com.almogbb.crimpi.R;
+
 public class HomeFragment extends Fragment {
 
     // Declare UI elements that will be in this fragment's layout
     private ImageView centralLogoImageView;
     private TextView instructionTextView;
-    // REMOVED: private TextView receivedNumberTextView;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -98,19 +100,27 @@ public class HomeFragment extends Fragment {
 
     // Public methods to control UI visibility based on connection state
     public void showDisconnectedStateUI() {
-        if (centralLogoImageView != null) centralLogoImageView.setVisibility(View.VISIBLE);
-        if (instructionTextView != null) instructionTextView.setVisibility(View.VISIBLE);
-        if (instructionTextView != null)
-            instructionTextView.setText(R.string.crimpi_connect); // Reset text on disconnect
+        if (centralLogoImageView != null) {
+            centralLogoImageView.setVisibility(View.VISIBLE);
+            centralLogoImageView.setColorFilter(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
+        }
+        if (instructionTextView != null) {
+            instructionTextView.setVisibility(View.VISIBLE);
+            instructionTextView.setText(R.string.crimpi_connect);
+        }
     }
 
     public void showConnectedStateUI() {
         // When connected, show the logo and update the instruction text
-        if (centralLogoImageView != null)
-            centralLogoImageView.setVisibility(View.VISIBLE); // Keep logo visible
-        if (instructionTextView != null) instructionTextView.setVisibility(View.VISIBLE);
-        if (instructionTextView != null)
+        if (centralLogoImageView != null) {
+            centralLogoImageView.setVisibility(View.VISIBLE);
+            centralLogoImageView.setColorFilter(ContextCompat.getColor(requireContext(), R.color.bluetooth_connected_blue));        }
+        if (instructionTextView != null) {
+            instructionTextView.setVisibility(View.VISIBLE);
             instructionTextView.setText(getString(R.string.connected_to_a_crimpi_device));
+        }
+
+
 
     }
 }
