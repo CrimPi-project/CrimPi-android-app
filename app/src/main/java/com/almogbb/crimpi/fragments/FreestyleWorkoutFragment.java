@@ -1,4 +1,3 @@
-// FreestyleWorkoutFragment.java
 package com.almogbb.crimpi.fragments;
 
 import android.Manifest;
@@ -14,24 +13,33 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.animation.ValueAnimator;
 import android.widget.Toast;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams;
 
 import com.almogbb.crimpi.MainActivity;
 import com.almogbb.crimpi.R;
 
 public class FreestyleWorkoutFragment extends Fragment {
 
+    private static final String TAG = "FreestyleWorkoutFrag";
+
     private Button startButton;
     private TextView receivedNumberTextView;
-    private TextView countdownTextView; // New TextView for countdown
-    private final Handler handler = new Handler(Looper.getMainLooper()); // Handler for countdown
-    private int countdownValue = 3; // Initial countdown value
-    private boolean workoutStarted = false; // Flag to indicate if workout is active
+    private TextView countdownTextView;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private int countdownValue = 3;
+
+    private View forceBar;
+    private View forceBarTrack;
+    private static final float MAX_FORCE_VALUE = 100.0f; // Example: 100 kg or 100 N
+    private boolean workoutStarted = false;
 
     public FreestyleWorkoutFragment() {
         // Required empty public constructor
@@ -42,15 +50,18 @@ public class FreestyleWorkoutFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_freestyle_workout, container, false);
 
-        // Initialize UI elements
         startButton = view.findViewById(R.id.startButton);
         receivedNumberTextView = view.findViewById(R.id.freestyleReceivedNumberTextView);
-        countdownTextView = view.findViewById(R.id.countdownTextView); // Initialize countdown TextView
+        countdownTextView = view.findViewById(R.id.countdownTextView);
+        forceBar = view.findViewById(R.id.forceBar);
+        forceBarTrack = view.findViewById(R.id.forceBarTrack);
 
         // Set initial visibility
         startButton.setVisibility(View.VISIBLE);
         receivedNumberTextView.setVisibility(View.GONE);
         countdownTextView.setVisibility(View.GONE);
+        forceBar.setVisibility(View.GONE);
+        forceBarTrack.setVisibility(View.GONE);
 
         // Set initial text for received number
         receivedNumberTextView.setText(R.string.n_a);
@@ -72,16 +83,16 @@ public class FreestyleWorkoutFragment extends Fragment {
                     Toast.makeText(requireContext(), R.string.not_connected_to_a_crimpi_device_please_connect, Toast.LENGTH_SHORT).show();
                 }
             }
-
         });
 
         return view;
     }
 
     private void startCountdown() {
-        startButton.setVisibility(View.GONE); // Hide start button
-        countdownTextView.setVisibility(View.VISIBLE); // Show countdown text
-        countdownValue = 3; // Reset countdown
+        startButton.setVisibility(View.GONE);
+        countdownTextView.setVisibility(View.VISIBLE);
+        countdownValue = 3;
+        countdownTextView.setText(String.valueOf(countdownValue));
 
         Runnable countdownRunnable = new Runnable() {
             @Override
@@ -89,47 +100,133 @@ public class FreestyleWorkoutFragment extends Fragment {
                 if (countdownValue > 0) {
                     countdownTextView.setText(String.valueOf(countdownValue));
                     countdownValue--;
-                    handler.postDelayed(this, 1000); // Repeat after 1 second
+                    handler.postDelayed(this, 1000);
                 } else {
-                    countdownTextView.setVisibility(View.GONE); // Hide countdown
-                    receivedNumberTextView.setVisibility(View.VISIBLE); // Show received number
-                    workoutStarted = true; // Indicate workout has started
-                    // Optionally, reset received number to N/A or 0.00
+                    countdownTextView.setVisibility(View.GONE);
+                    receivedNumberTextView.setVisibility(View.VISIBLE);
+                    forceBarTrack.setVisibility(View.VISIBLE);
+                    forceBar.setVisibility(View.VISIBLE);
+                    workoutStarted = true;
+                    startButton.setText("Stop Workout");
+                    startButton.setVisibility(View.VISIBLE);
                     receivedNumberTextView.setText(R.string.n_a);
                 }
             }
         };
-        handler.post(countdownRunnable); // Start the countdown
+        handler.post(countdownRunnable);
     }
 
-
-    public void updateReceivedNumber(String number) {
-        // Only update the received number TextView if the workout has started
-        if (workoutStarted && receivedNumberTextView != null) {
-            receivedNumberTextView.setText(number);
-        } else if (!workoutStarted && receivedNumberTextView != null) {
-            // If workout hasn't started, ensure it's "N/A" or empty
-            receivedNumberTextView.setText(R.string.n_a);
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        // Remove any pending callbacks to prevent memory leaks
+    private void stopWorkout() {
         handler.removeCallbacksAndMessages(null);
+        workoutStarted = false;
+        resetWorkoutState();
     }
 
-    // You might want to add methods to reset the workout state if the user navigates away
-    // or disconnects, but for now, this handles the basic start/countdown.
     public void resetWorkoutState() {
         workoutStarted = false;
-        if (startButton != null) startButton.setVisibility(View.VISIBLE);
+        if (startButton != null) {
+            startButton.setText(R.string.start_workout);
+            startButton.setVisibility(View.VISIBLE);
+        }
         if (receivedNumberTextView != null) {
             receivedNumberTextView.setText(R.string.n_a);
             receivedNumberTextView.setVisibility(View.GONE);
         }
         if (countdownTextView != null) countdownTextView.setVisibility(View.GONE);
-        handler.removeCallbacksAndMessages(null); // Stop any ongoing countdown
+        if (forceBar != null) forceBar.setVisibility(View.GONE);
+        if (forceBarTrack != null) forceBarTrack.setVisibility(View.GONE);
+        setForceBarPosition(0.0f); // NEW: Call setForceBarPosition to reset to bottom
+        handler.removeCallbacksAndMessages(null);
+    }
+
+    /**
+     * Public method to update the displayed number and animate the force line.
+     * This method should be called by MainActivity when new force data is received.
+     *
+     * @param number The force value as a String (e.g., "18.50").
+     */
+    public void updateReceivedNumber(String number) {
+        if (workoutStarted && receivedNumberTextView != null) {
+            receivedNumberTextView.setText(number);
+
+            try {
+                final float force = Float.parseFloat(number);
+                setForceBarPosition(force); // NEW: Call setForceBarPosition
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "Invalid number format for force: " + number, e);
+                setForceBarPosition(0.0f);
+            }
+        } else if (!workoutStarted && receivedNumberTextView != null) {
+            receivedNumberTextView.setText(R.string.n_a);
+            setForceBarPosition(0.0f);
+        }
+    }
+
+    /**
+     * Dynamically sets the vertical position of the horizontal force line based on the input force value with animation.
+     * The line moves up from the bottom of its track.
+     *
+     * @param force The current force value.
+     */
+    private void setForceBarPosition(final float force) { // Renamed from setForceBarHeight
+        if (forceBar == null || forceBarTrack == null) {
+            Log.e(TAG, "Force bar or track not initialized.");
+            return;
+        }
+
+        final float clampedForce;
+        if (force < 0) {
+            clampedForce = 0;
+        } else {
+            clampedForce = force;
+        }
+
+        final float forcePercentage = clampedForce / MAX_FORCE_VALUE;
+        final float cappedForcePercentage = Math.min(forcePercentage, 1.0f);
+
+        forceBarTrack.post(() -> {
+            int trackHeight = forceBarTrack.getHeight();
+            int actualBarHeight = forceBar.getHeight(); // Get the fixed height of the horizontal line (e.g., 3dp)
+
+            if (trackHeight > 0 && actualBarHeight > 0) {
+                // Calculate the maximum vertical travel for the line (from bottom to top of track)
+                int maxVerticalTravel = trackHeight - actualBarHeight;
+
+                // Calculate the new bottom margin based on force percentage
+                // 0% force -> 0 margin (line at bottom)
+                // 100% force -> maxVerticalTravel (line at top)
+                final int newMarginBottom = (int) (maxVerticalTravel * cappedForcePercentage);
+
+                LayoutParams currentParams = (LayoutParams) forceBar.getLayoutParams();
+                int currentMarginBottom = (currentParams != null) ? currentParams.bottomMargin : 0;
+
+                if (newMarginBottom != currentMarginBottom) {
+                    ValueAnimator animator = ValueAnimator.ofInt(currentMarginBottom, newMarginBottom);
+                    animator.addUpdateListener(animation -> {
+                        int animatedMargin = (int) animation.getAnimatedValue();
+                        LayoutParams params = (LayoutParams) forceBar.getLayoutParams();
+                        if (params == null) {
+                            params = new LayoutParams(LayoutParams.MATCH_CONSTRAINT, actualBarHeight);
+                            params.bottomToBottom = R.id.forceBarTrack;
+                            params.startToStart = R.id.forceBarTrack;
+                            params.endToEnd = R.id.forceBarTrack;
+                        }
+                        params.bottomMargin = animatedMargin; // Animate bottom margin
+                        forceBar.setLayoutParams(params);
+                    });
+                    animator.setDuration(100);
+                    animator.start();
+                }
+                Log.d(TAG, "Force: " + clampedForce + ", Track Height: " + trackHeight + ", New Margin Bottom: " + newMarginBottom);
+            } else {
+                Log.w(TAG, "Force bar track height or actual bar height is 0, cannot set bar position.");
+            }
+        });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        handler.removeCallbacksAndMessages(null);
     }
 }
