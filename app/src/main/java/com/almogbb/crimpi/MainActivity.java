@@ -58,7 +58,6 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -169,7 +168,8 @@ public class MainActivity extends AppCompatActivity {
                     if (activeFragment instanceof HomeFragment) {
                         ((HomeFragment) activeFragment).showDisconnectedStateUI();
                     } else if (activeFragment instanceof FreestyleWorkoutFragment) {
-                        ((FreestyleWorkoutFragment) activeFragment).updateReceivedNumber(getString(R.string.n_a)); // Reset display
+                        ((FreestyleWorkoutFragment) activeFragment).resetWorkoutState();
+                        Toast.makeText(MainActivity.this, R.string.disconnected_from_device, Toast.LENGTH_SHORT).show();
                     }
                 });
                 if (bluetoothGatt != null) {
@@ -218,12 +218,12 @@ public class MainActivity extends AppCompatActivity {
                 byte[] value = characteristic.getValue();
                 if (value != null && value.length >= 2) {
                     int rawTemp = ByteBuffer.wrap(value).order(ByteOrder.LITTLE_ENDIAN).getShort();
-                    float temperature = rawTemp / 100.0f;
+                    float forceValue = rawTemp / 100.0f;
 
                     runOnUiThread(() -> {
                         // NEW: Update the currently active fragment
                         if (activeFragment instanceof FreestyleWorkoutFragment) {
-                            ((FreestyleWorkoutFragment) activeFragment).updateReceivedNumber(String.format(Locale.getDefault(), "%.2f", temperature));
+                            ((FreestyleWorkoutFragment) activeFragment).updateForceFromBLE(forceValue);
                         }
                         // Add more 'else if' for other fragments that need this data
                     });
