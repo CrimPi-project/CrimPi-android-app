@@ -7,36 +7,60 @@
     android:background="@color/background_dark_navy"
     tools:context=".fragments.FreestyleWorkoutFragment">
 
-    <!-- Freestyle Received Number TextView (Top Center) -->
-    <TextView
-        android:id="@+id/freestyleReceivedNumberTextView"
+    <!-- RelativeLayout to contain the weight number and the "kg" unit -->
+    <RelativeLayout
+        android:id="@+id/weightDisplayContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:text="@string/n_a"
-        android:textColor="@color/primary_text_color"
-        android:textSize="80sp"
-        android:textStyle="bold"
-        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
+        android:layoutDirection="ltr"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Freestyle Received Number TextView (Main weight number) -->
+        <TextView
+            android:id="@+id/freestyleReceivedNumberTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:text="@string/n_a"
+            android:textColor="@color/primary_text_color"
+            android:textSize="80sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <!-- TextView for "kg" unit -->
+        <TextView
+            android:id="@+id/unitKgTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/freestyleReceivedNumberTextView"
+            android:layout_marginStart="4dp"
+            android:layout_toEndOf="@id/freestyleReceivedNumberTextView"
+            android:text="kg"
+            android:textColor="@color/primary_text_color"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+    </RelativeLayout>
 
     <!-- Force Bar Container (Acts as the track for the dynamic line) -->
     <View
         android:id="@+id/forceBarTrack"
-        android:layout_width="300dp"
+        android:layout_width="280dp"
         android:layout_height="0dp"
-        android:background="@drawable/force_track_outline"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
         android:alpha="0.7"
+        android:background="@drawable/force_track_outline"
         android:paddingBottom="4dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/startButton"
+        app:layout_constraintBottom_toTopOf="@id/buttonContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/freestyleReceivedNumberTextView" />
+        app:layout_constraintTop_toBottomOf="@id/weightDisplayContainer" />
 
     <!-- Force Bar (The dynamic horizontal line that moves up and down) -->
     <View
@@ -49,18 +73,50 @@
         app:layout_constraintEnd_toEndOf="@id/forceBarTrack"
         app:layout_constraintStart_toStartOf="@id/forceBarTrack" />
 
-    <!-- Start Button (Bottom Center) -->
-    <Button
-        android:id="@+id/startButton"
-        style="@style/RoundedButton"
+    <!-- Target Line (Static horizontal line set by user) -->
+    <View
+        android:id="@+id/targetLine"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:background="@color/text_light_gray"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/forceBarTrack"
+        app:layout_constraintEnd_toEndOf="@id/forceBarTrack"
+        app:layout_constraintStart_toStartOf="@id/forceBarTrack" />
+
+    <!-- Horizontal LinearLayout to contain the two buttons -->
+    <LinearLayout
+        android:id="@+id/buttonContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
-        android:text="@string/start_workout"
+        android:gravity="center"
+        android:orientation="horizontal"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- Set Target Button -->
+        <Button
+            android:id="@+id/setTargetButton"
+            style="@style/RoundedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="Set Target"
+            android:visibility="gone" />
+
+        <!-- Start/Stop Workout Button -->
+        <Button
+            android:id="@+id/startButton"
+            style="@style/RoundedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/start_workout"
+            android:visibility="visible" />
+
+    </LinearLayout>
 
     <!-- Countdown TextView (Initially Hidden, centered) -->
     <TextView

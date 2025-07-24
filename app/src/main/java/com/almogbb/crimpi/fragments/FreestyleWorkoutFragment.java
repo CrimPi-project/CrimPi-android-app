@@ -1,5 +1,7 @@
 package com.almogbb.crimpi.fragments;
 
+import java.util.Locale;
+
 import android.Manifest;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
@@ -33,12 +35,18 @@ public class FreestyleWorkoutFragment extends Fragment {
     private Button startButton;
     private TextView receivedNumberTextView;
     private TextView countdownTextView;
+
+    private TextView unitKgTextView;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private int countdownValue = 3;
-
+    private View targetLine; // Reference to the target line View
+    private Button setTargetButton; // Reference to the Set Target Button
     private View forceBar;
     private View forceBarTrack;
     private static final float MAX_FORCE_VALUE = 100.0f; // Example: 100 kg or 100 N
+
+    private float targetForcePercentage = -1.0f; // Stores the capped percentage of the target force
+    private boolean targetSet = false; // Flag to indicate if a target has been set
     private boolean workoutStarted = false;
 
     public FreestyleWorkoutFragment() {
@@ -53,15 +61,21 @@ public class FreestyleWorkoutFragment extends Fragment {
         startButton = view.findViewById(R.id.startButton);
         receivedNumberTextView = view.findViewById(R.id.freestyleReceivedNumberTextView);
         countdownTextView = view.findViewById(R.id.countdownTextView);
+        unitKgTextView = view.findViewById(R.id.unitKgTextView);
         forceBar = view.findViewById(R.id.forceBar);
         forceBarTrack = view.findViewById(R.id.forceBarTrack);
+        targetLine = view.findViewById(R.id.targetLine);
+        setTargetButton = view.findViewById(R.id.setTargetButton);
 
         // Set initial visibility
         startButton.setVisibility(View.VISIBLE);
         receivedNumberTextView.setVisibility(View.GONE);
         countdownTextView.setVisibility(View.GONE);
+        unitKgTextView.setVisibility(View.GONE);
         forceBar.setVisibility(View.GONE);
         forceBarTrack.setVisibility(View.GONE);
+        targetLine.setVisibility(View.GONE);
+        setTargetButton.setVisibility(View.GONE);
 
         // Set initial text for received number
         receivedNumberTextView.setText(R.string.n_a);
@@ -75,7 +89,11 @@ public class FreestyleWorkoutFragment extends Fragment {
 
                     int state = bluetoothManager.getConnectionState(main.bluetoothGatt.getDevice(), BluetoothProfile.GATT);
                     if (state == BluetoothProfile.STATE_CONNECTED) {
-                        startCountdown();
+                        if (!workoutStarted) { // Only start countdown if workout hasn't started
+                            startCountdown();
+                        } else { // If workout is active, this button becomes "Stop Workout"
+                            stopWorkout();
+                        }
                     } else {
                         Toast.makeText(requireContext(), R.string.not_connected_to_a_crimpi_device_please_connect, Toast.LENGTH_SHORT).show();
                     }
@@ -85,6 +103,11 @@ public class FreestyleWorkoutFragment extends Fragment {
             }
         });
 
+        setTargetButton.setOnClickListener(v -> {
+            if (workoutStarted) { // Only allow setting target if workout is active
+                setTargetLinePosition();
+            }
+        });
         return view;
     }
 
@@ -106,10 +129,13 @@ public class FreestyleWorkoutFragment extends Fragment {
                     receivedNumberTextView.setVisibility(View.VISIBLE);
                     forceBarTrack.setVisibility(View.VISIBLE);
                     forceBar.setVisibility(View.VISIBLE);
-                    workoutStarted = true;
-                    startButton.setText("Stop Workout");
+                    startButton.setText(R.string.stop_workout);
                     startButton.setVisibility(View.VISIBLE);
                     receivedNumberTextView.setText(R.string.n_a);
+                    unitKgTextView.setVisibility(View.VISIBLE);
+                    setTargetButton.setVisibility(View.VISIBLE);
+                    receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
+                    workoutStarted = true;
                 }
             }
         };
@@ -131,43 +157,56 @@ public class FreestyleWorkoutFragment extends Fragment {
         if (receivedNumberTextView != null) {
             receivedNumberTextView.setText(R.string.n_a);
             receivedNumberTextView.setVisibility(View.GONE);
+            receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
         }
         if (countdownTextView != null) countdownTextView.setVisibility(View.GONE);
         if (forceBar != null) forceBar.setVisibility(View.GONE);
         if (forceBarTrack != null) forceBarTrack.setVisibility(View.GONE);
+        if (targetLine != null) targetLine.setVisibility(View.GONE);
+        if (setTargetButton != null) setTargetButton.setVisibility(View.GONE);
+        if (unitKgTextView != null) unitKgTextView.setVisibility(View.GONE);
         setForceBarPosition(0.0f); // NEW: Call setForceBarPosition to reset to bottom
+        targetForcePercentage = -1.0f;
+        targetSet = false;
         handler.removeCallbacksAndMessages(null);
     }
 
-    /**
-     * Public method to update the displayed number and animate the force line.
-     * This method should be called by MainActivity when new force data is received.
-     *
-     * @param number The force value as a String (e.g., "18.50").
-     */
     public void updateReceivedNumber(String number) {
-        if (workoutStarted && receivedNumberTextView != null) {
-            receivedNumberTextView.setText(number);
-
+        if (receivedNumberTextView != null && workoutStarted) {
             try {
                 final float force = Float.parseFloat(number);
-                setForceBarPosition(force); // NEW: Call setForceBarPosition
+                // Display the number with two decimal places
+                receivedNumberTextView.setText(String.format(Locale.getDefault(), "%.2f", force));
+                setForceBarPosition(force);
+
+                // NEW: Compare force to target and update text color
+                if (targetSet) {
+                    float currentForcePercentage = force / MAX_FORCE_VALUE;
+                    if (currentForcePercentage < targetForcePercentage) {
+                        receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.below_target));
+                    } else {
+                        receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
+                    }
+                } else {
+                    // If target is not set, keep default color
+                    receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
+                }
+
             } catch (NumberFormatException e) {
                 Log.e(TAG, "Invalid number format for force: " + number, e);
+                receivedNumberTextView.setText(R.string.n_a);
                 setForceBarPosition(0.0f);
+                // On error, reset to default color
+                receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
             }
-        } else if (!workoutStarted && receivedNumberTextView != null) {
+        } else if (receivedNumberTextView != null && !workoutStarted) {
             receivedNumberTextView.setText(R.string.n_a);
             setForceBarPosition(0.0f);
+            // On not started, reset to default color
+            receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
         }
     }
 
-    /**
-     * Dynamically sets the vertical position of the horizontal force line based on the input force value with animation.
-     * The line moves up from the bottom of its track.
-     *
-     * @param force The current force value.
-     */
     private void setForceBarPosition(final float force) { // Renamed from setForceBarHeight
         if (forceBar == null || forceBarTrack == null) {
             Log.e(TAG, "Force bar or track not initialized.");
@@ -223,6 +262,56 @@ public class FreestyleWorkoutFragment extends Fragment {
             }
         });
     }
+
+    private void setTargetLinePosition() {
+        if (forceBar == null || targetLine == null || receivedNumberTextView == null) {
+            Log.e(TAG, "Force bar, target line, or receivedNumberTextView not initialized.");
+            return;
+        }
+
+        // Ensure layout is complete before getting margins
+        forceBar.post(() -> {
+            LayoutParams forceBarParams = (LayoutParams) forceBar.getLayoutParams();
+            if (forceBarParams != null) {
+                int currentForceBarMarginBottom = forceBarParams.bottomMargin;
+
+                LayoutParams targetLineParams = (LayoutParams) targetLine.getLayoutParams();
+                if (targetLineParams == null) {
+                    // Initialize params if null (first time setting)
+                    targetLineParams = new LayoutParams(LayoutParams.MATCH_CONSTRAINT, targetLine.getHeight());
+                    targetLineParams.bottomToBottom = R.id.forceBarTrack;
+                    targetLineParams.startToStart = R.id.forceBarTrack;
+                    targetLineParams.endToEnd = R.id.forceBarTrack;
+                }
+                targetLineParams.bottomMargin = currentForceBarMarginBottom; // Set target line to force bar's current margin
+                targetLine.setLayoutParams(targetLineParams);
+                targetLine.setVisibility(View.VISIBLE);
+
+                // Store the current force percentage as the target
+                try {
+                    float currentForce = Float.parseFloat(receivedNumberTextView.getText().toString());
+                    targetForcePercentage = currentForce / MAX_FORCE_VALUE;
+                    if (targetForcePercentage > 1.0f) {
+                        targetForcePercentage = 1.0f; // Cap at 100%
+                    }
+                    targetSet = true;
+                    Log.d(TAG, "Target line set at margin: " + currentForceBarMarginBottom + ", Target Force Percentage: " + targetForcePercentage);
+                    Toast.makeText(requireContext(), "Target set!", Toast.LENGTH_SHORT).show();
+
+                    // Immediately re-evaluate color based on newly set target
+                    updateReceivedNumber(receivedNumberTextView.getText().toString());
+
+                } catch (NumberFormatException e) {
+                    Log.e(TAG, "Could not parse current force for target setting: " + receivedNumberTextView.getText().toString(), e);
+                    Toast.makeText(requireContext(), "Error setting target: Invalid force value.", Toast.LENGTH_SHORT).show();
+                    targetSet = false; // Don't set target if parsing fails
+                }
+            } else {
+                Log.w(TAG, "Force bar LayoutParams are null, cannot set target line.");
+            }
+        });
+    }
+
 
     @Override
     public void onDestroyView() {

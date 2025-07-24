@@ -30,4 +30,6 @@
     <string name="not_connected_to_a_crimpi_device_please_connect">Not connected to a CrimPi device. Please connect.</string>
     <string name="countdown_start">3</string>
     <string name="stop_workout">Stop Workout</string>
+    <string name="set_target">Set Target</string>
+    <string name="kg">kg</string>
 </resources>
