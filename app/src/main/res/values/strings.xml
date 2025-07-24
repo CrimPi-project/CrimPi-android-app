@@ -32,4 +32,9 @@
     <string name="stop_workout">Stop Workout</string>
     <string name="set_target">Set Target</string>
     <string name="kg">kg</string>
+    <string name="location_permissions_not_granted">Location permissions not granted</string>
+    <string name="select_a_crimpi_device">Select a CrimPi Device</string>
+    <string name="no_crimpi_devices_found">No CrimPi devices found. Make sure the device is on and discoverable.</string>
+    <string name="device_logo">Device Logo</string>
+    <string name="crimpi_device_name">CrimPi Device Name</string>
 </resources>

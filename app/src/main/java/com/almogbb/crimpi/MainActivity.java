@@ -322,57 +322,73 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private void updateBluetoothStatusUI() {
-        if (homeFragment == null) {
-            Log.w(TAG, "HomeFragment is null in updateBluetoothStatusUI. Cannot update UI.");
+        // Dynamically get the currently attached HomeFragment
+        HomeFragment currentHome = (HomeFragment) getSupportFragmentManager().findFragmentByTag("HomeFragmentTag");
+
+        if (currentHome == null || !currentHome.isAdded()) {
+            Log.w(TAG, "HomeFragment not attached yet, skipping UI update.");
             return;
         }
 
         if (bluetoothAdapter == null) {
-            homeFragment.updateInstructionText(getString(R.string.bluetooth_not_supported));
+            currentHome.updateInstructionText(getString(R.string.bluetooth_not_supported));
             bluetoothButton.setEnabled(false);
-            bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.primary_text_color)); // Ensure disconnected color
-            homeFragment.showDisconnectedStateUI();
+            bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.primary_text_color));
+            currentHome.showDisconnectedStateUI();
         } else if (!bluetoothAdapter.isEnabled()) {
-            homeFragment.updateInstructionText(getString(R.string.bluetooth_not_enabled));
+            currentHome.updateInstructionText(getString(R.string.bluetooth_not_enabled));
             bluetoothButton.setEnabled(false);
-            bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.primary_text_color)); // Ensure disconnected color
-            homeFragment.showDisconnectedStateUI();
+            bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.primary_text_color));
+            currentHome.showDisconnectedStateUI();
         } else {
             bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
             bluetoothButton.setEnabled(true);
 
-            // NEW LOGIC: Check actual GATT connection state
             boolean isConnected = false;
             if (bluetoothGatt != null) {
                 try {
-                    // Requires BLUETOOTH_CONNECT permission
-                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+                            == PackageManager.PERMISSION_GRANTED) {
                         BluetoothManager manager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
                         if (manager != null && bluetoothGatt.getDevice() != null) {
-                            if (manager.getConnectionState(bluetoothGatt.getDevice(), BluetoothProfile.GATT) == BluetoothProfile.STATE_CONNECTED) {
+                            if (manager.getConnectionState(bluetoothGatt.getDevice(), BluetoothProfile.GATT)
+                                    == BluetoothProfile.STATE_CONNECTED) {
                                 isConnected = true;
                             }
                         }
                     } else {
-                        Log.w(TAG, "BLUETOOTH_CONNECT permission not granted for checking GATT connection state in updateBluetoothStatusUI. Assuming disconnected.");
-                        // Fallback: If permission is denied, we can't reliably check, assume disconnected for safety
+                        Log.w(TAG, "BLUETOOTH_CONNECT permission not granted for checking GATT connection state.");
                     }
                 } catch (SecurityException e) {
-                    Log.e(TAG, "SecurityException checking GATT connection state in updateBluetoothStatusUI: " + e.getMessage());
+                    Log.e(TAG, "SecurityException checking GATT connection state: " + e.getMessage());
                 }
             }
 
             if (isConnected) {
-                homeFragment.updateInstructionText(getString(R.string.connected_to_a_crimpi_device));
+                currentHome.updateInstructionText(getString(R.string.connected_to_a_crimpi_device));
                 bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.bluetooth_connected_blue));
-                homeFragment.showConnectedStateUI(); // Ensure logo and text are visible
+                currentHome.showConnectedStateUI();
             } else {
-                homeFragment.updateInstructionText(getString(R.string.crimpi_connect));
+                currentHome.updateInstructionText(getString(R.string.crimpi_connect));
                 bluetoothButton.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.primary_text_color));
-                homeFragment.showDisconnectedStateUI(); // Ensure logo and text are visible
+                currentHome.showDisconnectedStateUI();
             }
         }
     }
+
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Save which fragment is currently active by its tag
+        if (activeFragment instanceof HomeFragment) {
+            outState.putString("activeFragmentTag", "HomeFragmentTag");
+        } else if (activeFragment instanceof FreestyleWorkoutFragment) {
+            outState.putString("activeFragmentTag", "FreestyleFragmentTag");
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -440,28 +456,43 @@ public class MainActivity extends AppCompatActivity {
 
             // Load HomeFragment initially
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, homeFragment)
+                    .replace(R.id.fragment_container, homeFragment, "HomeFragmentTag")
                     .commit();
             activeFragment = homeFragment; // Set active fragment
             navigationView.setCheckedItem(R.id.nav_home);
             updateBluetoothStatusUI(); // Update UI for the loaded fragment
         } else {
-            // If activity is recreated, retrieve existing fragment instances
-            homeFragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-            // We need to find the other fragment if it was previously loaded and re-attached
-            // For simplicity, we'll re-instantiate if not found, or manage state more robustly later.
-            // For now, assume homeFragment is the one found via fragment_container ID
-            // If you want to retain state for multiple fragments, you'd use findFragmentByTag
-            // and add/hide/show transactions instead of replace.
-            activeFragment = homeFragment; // Assuming HomeFragment is the default on recreate
-            // Re-instantiate freestyleWorkoutFragment if needed (or find by tag if it was added)
-            // For now, we'll just ensure it's not null if it needs to be accessed.
-            // A more robust solution for multiple fragments would involve a FragmentManager.findFragmentByTag
-            // and using .add()/.hide()/.show() instead of .replace().
-            // For this setup, we'll re-instantiate if it's null when needed.
+            // Retrieve the saved tag of the active fragment
+            String savedTag = savedInstanceState.getString("activeFragmentTag", "HomeFragmentTag");
+
+            FragmentManager fm = getSupportFragmentManager();
+
+            // Find existing fragments by their tags
+            homeFragment = (HomeFragment) fm.findFragmentByTag("HomeFragmentTag");
+            if (homeFragment == null) {
+                homeFragment = new HomeFragment();
+            }
+
+            freestyleWorkoutFragment = (FreestyleWorkoutFragment) fm.findFragmentByTag("FreestyleFragmentTag");
             if (freestyleWorkoutFragment == null) {
                 freestyleWorkoutFragment = new FreestyleWorkoutFragment();
             }
+
+            // Decide which one should be active based on the saved tag
+            if ("FreestyleFragmentTag".equals(savedTag)) {
+                activeFragment = freestyleWorkoutFragment;
+            } else {
+                activeFragment = homeFragment;
+            }
+
+            // Replace container with the restored active fragment (attach tag again)
+            fm.beginTransaction()
+                    .replace(
+                            R.id.fragment_container,
+                            activeFragment,
+                            (activeFragment instanceof HomeFragment) ? "HomeFragmentTag" : "FreestyleFragmentTag"
+                    )
+                    .commit();
         }
 
         // Set up Bluetooth button click listener to show scan dialog
@@ -516,34 +547,48 @@ public class MainActivity extends AppCompatActivity {
 
     // Helper method to load fragments
     private void loadFragment(Fragment fragment) {
+        FragmentManager fm = getSupportFragmentManager();
+
+        // If the fragment parameter is our freestyleWorkoutFragment, resolve from tag:
+        if (fragment instanceof FreestyleWorkoutFragment) {
+            Fragment existing = fm.findFragmentByTag("FreestyleFragmentTag");
+            if (existing != null) {
+                fragment = existing;
+                freestyleWorkoutFragment = (FreestyleWorkoutFragment) existing; // update field
+            }
+        } else if (fragment instanceof HomeFragment) {
+            Fragment existing = fm.findFragmentByTag("HomeFragmentTag");
+            if (existing != null) {
+                fragment = existing;
+                homeFragment = (HomeFragment) existing; // update field
+            }
+        }
+
         if (fragment != null && activeFragment != fragment) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.fragment_container, fragment);
-            fragmentTransaction.commit();
-            activeFragment = fragment; // Update active fragment
+            FragmentTransaction transaction = fm.beginTransaction();
+            String tag = (fragment instanceof HomeFragment) ? "HomeFragmentTag" : "FreestyleFragmentTag";
+            transaction.replace(R.id.fragment_container, fragment, tag);
+            transaction.commit();
+            activeFragment = fragment;
 
-            // NEW: Set the checked state for the corresponding menu item in the NavigationView
+            // Update navigation view
             if (navigationView != null) {
-                int menuItemId = -1;
-                if (fragment instanceof HomeFragment) {
-                    menuItemId = R.id.nav_home;
-                } else if (fragment instanceof FreestyleWorkoutFragment) {
-                    menuItemId = R.id.nav_freestyle_workout;
-                }
-                // Add more else if blocks for other fragments/menu items as needed
-                // For example: else if (fragment instanceof MyWorkoutsFragment) { menuItemId = R.id.nav_my_workouts; }
-
-                if (menuItemId != -1) {
-                    navigationView.setCheckedItem(menuItemId);
-                }
+                int menuItemId = (fragment instanceof HomeFragment)
+                        ? R.id.nav_home
+                        : R.id.nav_freestyle_workout;
+                navigationView.setCheckedItem(menuItemId);
             }
 
-
-            // Reset the state of the FreestyleWorkoutFragment if it's being loaded
-            if (activeFragment instanceof FreestyleWorkoutFragment) {
-                ((FreestyleWorkoutFragment) activeFragment).resetWorkoutState();
+            // Reset workout state if switching to freestyle
+            // Delay until fragment is attached
+            if (fragment instanceof FreestyleWorkoutFragment) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (activeFragment != null && activeFragment.isAdded()) {
+                        ((FreestyleWorkoutFragment) activeFragment).resetWorkoutState();
+                    }
+                });
             }
+
         }
     }
 

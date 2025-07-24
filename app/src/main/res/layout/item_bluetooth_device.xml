@@ -19,7 +19,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginEnd="16dp"
-        android:contentDescription="Device Logo"
+        android:contentDescription="@string/device_logo"
         android:src="@drawable/ic_crimpi_logo"
         app:tint="@color/primary_text_color" />
 
@@ -29,7 +29,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="CrimPi Device Name"
+        android:text="@string/crimpi_device_name"
         android:textColor="@color/primary_text_color"
         android:textSize="18sp"
         android:textStyle="bold" /> <!-- Placeholder text -->

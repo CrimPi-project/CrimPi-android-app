@@ -199,7 +199,7 @@ public class FreestyleWorkoutFragment extends Fragment {
                 // On error, reset to default color
                 receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
             }
-        } else if (receivedNumberTextView != null && !workoutStarted) {
+        } else if (receivedNumberTextView != null) {
             receivedNumberTextView.setText(R.string.n_a);
             setForceBarPosition(0.0f);
             // On not started, reset to default color
