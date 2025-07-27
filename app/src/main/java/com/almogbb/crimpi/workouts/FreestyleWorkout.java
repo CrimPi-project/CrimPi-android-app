@@ -21,6 +21,9 @@ public class FreestyleWorkout extends Workout {
                 } else {
                     // countdown done, start workout
                     workoutStarted = true;
+                    startTimeMillis = System.currentTimeMillis();
+                    elapsedTimeMillis = 0;
+                    startTimer();
                     if (listener != null) listener.onWorkoutStarted();
                 }
             }
@@ -34,6 +37,7 @@ public class FreestyleWorkout extends Workout {
         targetForcePercentage = -1f;
         workoutStarted = false;
         handler.removeCallbacksAndMessages(null);
+        stopTimer();
         if (listener != null) listener.onWorkoutStopped();
     }
 }

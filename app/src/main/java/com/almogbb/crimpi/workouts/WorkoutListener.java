@@ -15,4 +15,7 @@ public interface WorkoutListener {
 
     /** Called when a target force is set */
     void onTargetSet(float targetPercentage);
+
+    /** NEW: Called when the workout timer updates (e.g., every second) */
+    void onWorkoutProgressUpdated(long elapsedTimeSeconds);
 }

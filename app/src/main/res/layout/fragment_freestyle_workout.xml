@@ -7,20 +7,53 @@
     android:background="@color/background_dark_navy"
     tools:context=".fragments.FreestyleWorkoutFragment">
 
+    <RelativeLayout
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layoutDirection="ltr">
+
+        <ImageView
+            android:id="@+id/timerIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:contentDescription="@string/timer_icon_desc"
+            android:src="@drawable/ic_timer_24"
+            app:tint="@color/primary_text_color"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/timerTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/timerIcon"
+            android:layout_toStartOf="@id/timerIcon"
+            android:text="@string/zero"
+            android:textColor="@color/primary_text_color"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+    </RelativeLayout>
+
+
     <!-- RelativeLayout to contain the weight number and the "kg" unit -->
     <RelativeLayout
         android:id="@+id/weightDisplayContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        app:layout_constraintEnd_toEndOf="parent"
         android:layoutDirection="ltr"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <!-- Freestyle Received Number TextView (Main weight number) -->
         <TextView
-            android:id="@+id/freestyleReceivedNumberTextView"
+            android:id="@+id/forceTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
@@ -35,9 +68,9 @@
             android:id="@+id/unitKgTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBaseline="@id/freestyleReceivedNumberTextView"
+            android:layout_alignBaseline="@id/forceTextView"
             android:layout_marginStart="4dp"
-            android:layout_toEndOf="@id/freestyleReceivedNumberTextView"
+            android:layout_toEndOf="@id/forceTextView"
             android:text="@string/kg"
             android:textColor="@color/primary_text_color"
             android:textSize="30sp"
@@ -51,16 +84,16 @@
         android:id="@+id/bodyPercentageTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:text="@string/n_a"
         android:textColor="@color/primary_text_color"
         android:textSize="26sp"
         android:textStyle="normal"
         android:visibility="gone"
-        android:layout_marginTop="4dp"
+        app:layout_constraintBottom_toTopOf="@+id/forceBarTrack"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/weightDisplayContainer"
-        app:layout_constraintBottom_toTopOf="@+id/forceBarTrack"
         app:layout_constraintVertical_chainStyle="packed" />
 
 

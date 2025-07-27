@@ -16,6 +16,12 @@ public abstract class Workout {
 
     protected Handler handler = new Handler(Looper.getMainLooper());
 
+    // NEW: Timer related attributes
+    protected long startTimeMillis; // Timestamp when workout (or current active segment) started
+    protected long elapsedTimeMillis; // Total time spent in ACTIVE state
+    protected long pausedTimeMillis; // Total time accumulated while PAUSED
+    protected Runnable timerRunnable; // Runnable for timer updates
+
     public void setListener(WorkoutListener listener) {
         this.listener = listener;
     }
@@ -54,4 +60,34 @@ public abstract class Workout {
         if (listener != null) listener.onTargetSet(targetForcePercentage);
     }
 
+    // NEW: Getters for timer data
+    public long getElapsedTimeSeconds() {
+        if (workoutStarted) { // Only count time if workout is active
+            return (elapsedTimeMillis + (System.currentTimeMillis() - startTimeMillis)) / 1000;
+        } else {
+            return elapsedTimeMillis / 1000; // Return accumulated time if paused/stopped
+        }
+    }
+
+    // NEW: Internal Timer Management
+    protected void startTimer() {
+        handler.removeCallbacks(timerRunnable); // Ensure no duplicate runnables
+        timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (workoutStarted) { // Only update if workout is active
+                    long currentElapsedTime = getElapsedTimeSeconds(); // Use the getter
+                    if (listener != null) {
+                        listener.onWorkoutProgressUpdated(currentElapsedTime);
+                    }
+                    handler.postDelayed(this, 1000); // Post again after 1 second
+                }
+            }
+        };
+        handler.post(timerRunnable);
+    }
+
+    protected void stopTimer() {
+        handler.removeCallbacks(timerRunnable);
+    }
 }

@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.animation.ValueAnimator;
 import android.widget.Toast;
@@ -37,16 +38,18 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
     private static final String TAG = "FreestyleWorkoutFrag";
     private Workout workout;
     private Button startButton;
-    private TextView receivedNumberTextView;
+    private TextView forceTextView;
     private TextView countdownTextView;
     private TextView unitKgTextView;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private View targetLine; // Reference to the target line View
+    private View targetLine;
     private View forceBar;
     private View forceBarTrack;
 
     private TextView bodyPercentageTextView;
     private UserDataManager userDataManager;
+    private TextView timerTextView;
+    private ImageView timerIcon;
     private static final float MAX_FORCE_VALUE = 100.0f; // Example: 100 kg or 100 N
 
     public FreestyleWorkoutFragment() {
@@ -67,26 +70,30 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
         workout.setListener(this);
 
         startButton = view.findViewById(R.id.startButton);
-        receivedNumberTextView = view.findViewById(R.id.freestyleReceivedNumberTextView);
+        forceTextView = view.findViewById(R.id.forceTextView);
         countdownTextView = view.findViewById(R.id.countdownTextView);
         unitKgTextView = view.findViewById(R.id.unitKgTextView);
         forceBar = view.findViewById(R.id.forceBar);
         forceBarTrack = view.findViewById(R.id.forceBarTrack);
         targetLine = view.findViewById(R.id.targetLine);
         bodyPercentageTextView = view.findViewById(R.id.bodyPercentageTextView);
+        timerTextView = view.findViewById(R.id.timerTextView);
+        timerIcon = view.findViewById(R.id.timerIcon);
 
         startButton.setVisibility(View.VISIBLE);
-        receivedNumberTextView.setVisibility(View.GONE);
+        forceTextView.setVisibility(View.GONE);
         countdownTextView.setVisibility(View.GONE);
         unitKgTextView.setVisibility(View.GONE);
         forceBar.setVisibility(View.GONE);
         forceBarTrack.setVisibility(View.GONE);
         targetLine.setVisibility(View.GONE);
         bodyPercentageTextView.setVisibility(View.GONE);
+        timerTextView.setVisibility(View.GONE);
+        timerIcon.setVisibility(View.GONE);
 
 
         // Set initial text for received number
-        receivedNumberTextView.setText(R.string.n_a);
+        forceTextView.setText(R.string.n_a);
 
         startButton.setOnClickListener(v -> {
             BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
@@ -116,7 +123,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
             // This will trigger the same logic as the setTargetButton
             try {
                 if (workout.isRunning()){
-                    float currentForce = Float.parseFloat(receivedNumberTextView.getText().toString());
+                    float currentForce = Float.parseFloat(forceTextView.getText().toString());
                     workout.setTarget(currentForce);
                 }
             } catch (NumberFormatException e) {
@@ -159,33 +166,49 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
     public void onWorkoutStarted() {
         requireActivity().runOnUiThread(() -> {
             countdownTextView.setVisibility(View.GONE);
-            receivedNumberTextView.setVisibility(View.VISIBLE);
+            forceTextView.setVisibility(View.VISIBLE);
             forceBarTrack.setVisibility(View.VISIBLE);
             forceBar.setVisibility(View.VISIBLE);
             startButton.setText(R.string.stop_workout);
             startButton.setVisibility(View.VISIBLE);
-            receivedNumberTextView.setText(R.string.n_a);
+            forceTextView.setText(R.string.n_a);
             unitKgTextView.setVisibility(View.VISIBLE);
-            receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
+            forceTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
             bodyPercentageTextView.setVisibility(View.VISIBLE);
-            updateBodyPercentage(0f); // Pass 0 for initial calculation, will be updated by onForceChanged
+            timerTextView.setVisibility(View.VISIBLE);
+            timerIcon.setVisibility(View.VISIBLE);
+            timerTextView.setText(R.string.zero);
+            updateBodyPercentage(0f);
         });
     }
 
     @Override
     public void onForceChanged(float forceValue, boolean belowTarget) {
         requireActivity().runOnUiThread(() -> {
-            receivedNumberTextView.setText(String.format(Locale.getDefault(), "%.2f", forceValue));
+            forceTextView.setText(String.format(Locale.getDefault(), "%.2f", forceValue));
             setForceBarPosition(forceValue);
-            receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(),
+            forceTextView.setTextColor(ContextCompat.getColor(requireContext(),
                     belowTarget ? R.color.below_target : R.color.primary_text_color));
         });
         updateBodyPercentage(forceValue);
     }
 
-    @Override
     public void onWorkoutStopped() {
-        requireActivity().runOnUiThread(this::resetWorkoutState);
+        requireActivity().runOnUiThread(() -> {
+            // Reset all workout‑related UI elements
+            resetWorkoutState();
+
+            // Also reset and hide the timer UI
+            if (timerTextView != null) {
+                timerTextView.setText(getString(R.string.zero)); // or "0 s"
+                timerTextView.setVisibility(View.GONE);
+            }
+
+            View timerIcon = getView() != null ? getView().findViewById(R.id.timerIcon) : null;
+            if (timerIcon != null) {
+                timerIcon.setVisibility(View.GONE);
+            }
+        });
     }
 
     @Override
@@ -193,15 +216,22 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
         requireActivity().runOnUiThread(this::setTargetLinePosition);
     }
 
+    @Override
+    public void onWorkoutProgressUpdated(long elapsedTimeSeconds) {
+        requireActivity().runOnUiThread(() -> {
+            timerTextView.setText(String.format(Locale.getDefault(), "%d", elapsedTimeSeconds));
+        });
+    }
+
     public void resetWorkoutState() {
         if (startButton != null) {
             startButton.setText(R.string.start_workout);
             startButton.setVisibility(View.VISIBLE);
         }
-        if (receivedNumberTextView != null) {
-            receivedNumberTextView.setText(R.string.n_a);
-            receivedNumberTextView.setVisibility(View.GONE);
-            receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
+        if (forceTextView != null) {
+            forceTextView.setText(R.string.n_a);
+            forceTextView.setVisibility(View.GONE);
+            forceTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
         }
         if (countdownTextView != null) countdownTextView.setVisibility(View.GONE);
         if (forceBar != null) forceBar.setVisibility(View.GONE);
@@ -273,7 +303,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
     }
 
     private void setTargetLinePosition() {
-        if (forceBar == null || targetLine == null || receivedNumberTextView == null) {
+        if (forceBar == null || targetLine == null || forceTextView == null) {
             Log.e(TAG, "Force bar, target line, or receivedNumberTextView not initialized.");
             return;
         }
