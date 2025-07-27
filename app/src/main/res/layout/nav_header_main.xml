@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="140dp"
     android:background="@color/primary_navy"
@@ -11,22 +13,44 @@
     android:paddingBottom="16dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
-    <!-- App Name/Title in the header -->
-    <TextView
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="8dp"
-        android:text="@string/app_name"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/primary_text_color"
-        android:textSize="24sp"
-        android:textStyle="bold" />
+        android:layout_marginBottom="2dp">
 
-    <!-- Horizontal Line below the title -->
+        <TextView
+            android:id="@+id/navHeaderTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="@string/app_name"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textColor="@color/primary_text_color"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            tools:ignore="RelativeOverlap" />
+
+        <ImageButton
+            android:id="@+id/bodyWeightButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/body_weight_button_desc"
+            android:padding="4dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_monitor_weight_24"
+            app:tint="@color/primary_text_color"
+            tools:ignore="TouchTargetSizeCheck" />
+
+    </RelativeLayout>
+
     <View
+        android:id="@+id/navHeaderLine"
         android:layout_width="match_parent"
         android:layout_height="2dp"
-        android:layout_marginTop="8dp"
         android:background="@color/purple_200" />
 
 </LinearLayout>

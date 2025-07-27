@@ -1,8 +1,10 @@
 // MainActivity.java
 package com.almogbb.crimpi;
 
+import com.almogbb.crimpi.data.UserDataManager;
 import com.almogbb.crimpi.fragments.FreestyleWorkoutFragment;
 import com.almogbb.crimpi.fragments.HomeFragment;
+import com.almogbb.crimpi.fragments.BodyWeightDialogFragment;
 import com.google.android.material.navigation.NavigationView; // NEW
 
 import android.Manifest;
@@ -61,7 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements BodyWeightDialogFragment.BodyWeightDialogListener {
 
     private static final String TAG = "CrimPiBLEApp";
 
@@ -100,6 +102,19 @@ public class MainActivity extends AppCompatActivity {
     private static final UUID ENV_SENSE_SERVICE_UUID = UUID.fromString("0000181A-0000-1000-8000-00805F9B34FB");
     private static final UUID TEMPERATURE_CHARACTERISTIC_UUID = UUID.fromString("00002A6E-0000-1000-8000-00805F9B34FB");
     private static final UUID CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805F9B34FB");
+
+    private UserDataManager userDataManager; // For managing user data like body weight
+
+    @Override
+    public void onBodyWeightEntered(float weight) {
+        Log.d(TAG, "Body weight entered from dialog: " + weight);
+        Toast.makeText(this, getString(R.string.body_weight_saved), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onBodyWeightCanceled() {
+        Log.d(TAG, "Body weight dialog canceled.");
+    }
 
 
     // Callback for BLE scan results
@@ -397,6 +412,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize Toolbar and set it as the ActionBar
         // Reference to the new Toolbar
+        userDataManager = new UserDataManager(getApplicationContext());
         androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -436,6 +452,21 @@ public class MainActivity extends AppCompatActivity {
             drawerLayout.closeDrawer(navigationView); // Close the drawer after item selection
             return true;
         });
+
+        View headerView = navigationView.getHeaderView(0); // Get the header view (assuming it's the first one)
+        if (headerView != null) {
+            ImageButton bodyWeightButton = headerView.findViewById(R.id.bodyWeightButton);
+            if (bodyWeightButton != null) {
+                bodyWeightButton.setOnClickListener(v -> {
+                    BodyWeightDialogFragment dialog = BodyWeightDialogFragment.newInstance(this);
+                    dialog.show(getSupportFragmentManager(), "BodyWeightDialog");
+                });
+            } else {
+                Log.e(TAG, "Body Weight Button not found in nav_header_main.xml");
+            }
+        } else {
+            Log.e(TAG, "Navigation header view is null.");
+        }
 
         // Initialize main screen UI elements (bluetoothButton remains)
         bluetoothButton = findViewById(R.id.bluetoothButton);
@@ -570,8 +601,6 @@ public class MainActivity extends AppCompatActivity {
             transaction.replace(R.id.fragment_container, fragment, tag);
             transaction.commit();
             activeFragment = fragment;
-
-            // Update navigation view
             if (navigationView != null) {
                 int menuItemId = (fragment instanceof HomeFragment)
                         ? R.id.nav_home

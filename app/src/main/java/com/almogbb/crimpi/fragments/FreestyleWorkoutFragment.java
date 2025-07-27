@@ -27,6 +27,7 @@ import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams;
 
 import com.almogbb.crimpi.MainActivity;
 import com.almogbb.crimpi.R;
+import com.almogbb.crimpi.data.UserDataManager;
 import com.almogbb.crimpi.workouts.FreestyleWorkout;
 import com.almogbb.crimpi.workouts.Workout;
 import com.almogbb.crimpi.workouts.WorkoutListener;
@@ -38,19 +39,23 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
     private Button startButton;
     private TextView receivedNumberTextView;
     private TextView countdownTextView;
-
     private TextView unitKgTextView;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private View targetLine; // Reference to the target line View
-    private Button setTargetButton; // Reference to the Set Target Button
     private View forceBar;
     private View forceBarTrack;
+
+    private TextView bodyPercentageTextView;
+    private UserDataManager userDataManager;
     private static final float MAX_FORCE_VALUE = 100.0f; // Example: 100 kg or 100 N
 
-    private float targetForcePercentage = -1.0f; // Stores the capped percentage of the target force
-
     public FreestyleWorkoutFragment() {
-        // Required empty public constructor
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        userDataManager = new UserDataManager(requireContext().getApplicationContext());
     }
 
     @Override
@@ -68,7 +73,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
         forceBar = view.findViewById(R.id.forceBar);
         forceBarTrack = view.findViewById(R.id.forceBarTrack);
         targetLine = view.findViewById(R.id.targetLine);
-        setTargetButton = view.findViewById(R.id.setTargetButton);
+        bodyPercentageTextView = view.findViewById(R.id.bodyPercentageTextView);
 
         startButton.setVisibility(View.VISIBLE);
         receivedNumberTextView.setVisibility(View.GONE);
@@ -77,7 +82,8 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
         forceBar.setVisibility(View.GONE);
         forceBarTrack.setVisibility(View.GONE);
         targetLine.setVisibility(View.GONE);
-        setTargetButton.setVisibility(View.GONE);
+        bodyPercentageTextView.setVisibility(View.GONE);
+
 
         // Set initial text for received number
         receivedNumberTextView.setText(R.string.n_a);
@@ -106,16 +112,33 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
             }
         });
 
-        setTargetButton.setOnClickListener(v -> {
-            // use the textview’s current force
+        forceBarTrack.setOnClickListener(v -> {
+            // This will trigger the same logic as the setTargetButton
             try {
-                float currentForce = Float.parseFloat(receivedNumberTextView.getText().toString());
-                workout.setTarget(currentForce);
+                if (workout.isRunning()){
+                    float currentForce = Float.parseFloat(receivedNumberTextView.getText().toString());
+                    workout.setTarget(currentForce);
+                }
             } catch (NumberFormatException e) {
                 Toast.makeText(requireContext(), "Invalid force value", Toast.LENGTH_SHORT).show();
             }
         });
+
         return view;
+    }
+
+    private void updateBodyPercentage(float currentForce) {
+        float bodyWeight = userDataManager.getBodyWeight(); // Retrieve saved body weight
+
+        if (bodyWeight > 0) { // Check if a valid body weight is set
+            float percentage = (currentForce / bodyWeight) * 100;
+            bodyPercentageTextView.setText(String.format(Locale.getDefault(), "Body weight percent: %.1f%%", percentage));
+            bodyPercentageTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color)); // Default color
+        } else {
+            // If body weight is not set or invalid, display N/A
+            bodyPercentageTextView.setText(R.string.n_a);
+            bodyPercentageTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color)); // Indicate not set
+        }
     }
 
     @Override
@@ -143,8 +166,9 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
             startButton.setVisibility(View.VISIBLE);
             receivedNumberTextView.setText(R.string.n_a);
             unitKgTextView.setVisibility(View.VISIBLE);
-            setTargetButton.setVisibility(View.VISIBLE);
             receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
+            bodyPercentageTextView.setVisibility(View.VISIBLE);
+            updateBodyPercentage(0f); // Pass 0 for initial calculation, will be updated by onForceChanged
         });
     }
 
@@ -156,6 +180,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
             receivedNumberTextView.setTextColor(ContextCompat.getColor(requireContext(),
                     belowTarget ? R.color.below_target : R.color.primary_text_color));
         });
+        updateBodyPercentage(forceValue);
     }
 
     @Override
@@ -165,10 +190,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
 
     @Override
     public void onTargetSet(float targetPercentage) {
-        requireActivity().runOnUiThread(() -> {
-            Toast.makeText(requireContext(), "Target set!", Toast.LENGTH_SHORT).show();
-            setTargetLinePosition();
-        });
+        requireActivity().runOnUiThread(this::setTargetLinePosition);
     }
 
     public void resetWorkoutState() {
@@ -185,10 +207,12 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
         if (forceBar != null) forceBar.setVisibility(View.GONE);
         if (forceBarTrack != null) forceBarTrack.setVisibility(View.GONE);
         if (targetLine != null) targetLine.setVisibility(View.GONE);
-        if (setTargetButton != null) setTargetButton.setVisibility(View.GONE);
         if (unitKgTextView != null) unitKgTextView.setVisibility(View.GONE);
+        if (bodyPercentageTextView != null) {
+            bodyPercentageTextView.setText(R.string.n_a);
+            bodyPercentageTextView.setVisibility(View.GONE);
+        }
         setForceBarPosition(0.0f);
-        targetForcePercentage = -1.0f;
         handler.removeCallbacksAndMessages(null);
     }
 
@@ -272,20 +296,6 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
                 targetLine.setLayoutParams(targetLineParams);
                 targetLine.setVisibility(View.VISIBLE);
 
-                // Store the current force percentage as the target
-                try {
-                    float currentForce = Float.parseFloat(receivedNumberTextView.getText().toString());
-                    targetForcePercentage = currentForce / MAX_FORCE_VALUE;
-                    if (targetForcePercentage > 1.0f) {
-                        targetForcePercentage = 1.0f; // Cap at 100%
-                    }
-                    Log.d(TAG, "Target line set at margin: " + currentForceBarMarginBottom + ", Target Force Percentage: " + targetForcePercentage);
-                    Toast.makeText(requireContext(), "Target set!", Toast.LENGTH_SHORT).show();
-
-                } catch (NumberFormatException e) {
-                    Log.e(TAG, "Could not parse current force for target setting: " + receivedNumberTextView.getText().toString(), e);
-                    Toast.makeText(requireContext(), "Error setting target: Invalid force value.", Toast.LENGTH_SHORT).show();
-                }
             } else {
                 Log.w(TAG, "Force bar LayoutParams are null, cannot set target line.");
             }

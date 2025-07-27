@@ -3,17 +3,15 @@ package com.almogbb.crimpi.workouts;
 public class FreestyleWorkout extends Workout {
 
     private int countdownValue = 3;
-    private Runnable countdownRunnable;
 
     @Override
     public void start() {
         if (workoutStarted) return;
-
         // Start countdown
         countdownValue = 3;
         if (listener != null) listener.onCountdownTick(countdownValue);
-
-        countdownRunnable = new Runnable() {
+        // countdown done, start workout
+        Runnable countdownRunnable = new Runnable() {
             @Override
             public void run() {
                 if (countdownValue > 0) {

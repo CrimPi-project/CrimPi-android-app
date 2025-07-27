@@ -39,4 +39,13 @@
     <string name="crimpi_device_name">CrimPi Device Name</string>
     <string name="disconnected_from_device">Workout stopped! Disconnected from device.</string>
     <string name="go">GO!</string>
+    <string name="enter_current_body_weight">Enter current body weight</string>
+    <string name="body_weight_hint">Body weight\n</string>
+    <string name="cancel">Cancel</string>
+    <string name="enter">Enter\n</string>
+    <string name="please_enter_body_weight">Please enter body weight</string>
+    <string name="body_weight_must_be_positive">Body weight must be positive</string>
+    <string name="body_weight_saved">Body weight saved!</string>
+    <string name="invalid_body_weight_format">Invalid weight format</string>
+    <string name="body_weight_button_desc">Body weight dialog button</string>
 </resources>

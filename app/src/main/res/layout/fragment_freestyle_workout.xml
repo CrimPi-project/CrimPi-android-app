@@ -46,6 +46,24 @@
 
     </RelativeLayout>
 
+    <!-- NEW: Body Percentage TextView - Placed below weightDisplayContainer -->
+    <TextView
+        android:id="@+id/bodyPercentageTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/n_a"
+        android:textColor="@color/primary_text_color"
+        android:textSize="26sp"
+        android:textStyle="normal"
+        android:visibility="gone"
+        android:layout_marginTop="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/weightDisplayContainer"
+        app:layout_constraintBottom_toTopOf="@+id/forceBarTrack"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+
     <!-- Force Bar Container (Acts as the track for the dynamic line) -->
     <View
         android:id="@+id/forceBarTrack"
@@ -60,7 +78,7 @@
         app:layout_constraintBottom_toTopOf="@id/buttonContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/weightDisplayContainer" />
+        app:layout_constraintTop_toBottomOf="@id/bodyPercentageTextView" /> <!-- Updated constraint -->
 
     <!-- Force Bar (The dynamic horizontal line that moves up and down) -->
     <View
@@ -96,16 +114,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
-
-        <!-- Set Target Button -->
-        <Button
-            android:id="@+id/setTargetButton"
-            style="@style/RoundedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:text="@string/set_target"
-            android:visibility="gone" />
 
         <!-- Start/Stop Workout Button -->
         <Button

@@ -2,6 +2,7 @@ package com.almogbb.crimpi.workouts;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 public abstract class Workout {
 
@@ -10,7 +11,7 @@ public abstract class Workout {
     // Common state
     protected boolean workoutStarted = false;
     protected boolean targetSet = false;
-    protected float targetForcePercentage = -2f;
+    protected float targetForcePercentage = -1f;
     protected static final float MAX_FORCE_VALUE = 100f;
 
     protected Handler handler = new Handler(Looper.getMainLooper());
