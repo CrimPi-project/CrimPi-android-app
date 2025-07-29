@@ -122,7 +122,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
         forceBarTrack.setOnClickListener(v -> {
             // This will trigger the same logic as the setTargetButton
             try {
-                if (workout.isRunning()){
+                if (workout.isRunning()) {
                     float currentForce = Float.parseFloat(forceTextView.getText().toString());
                     workout.setTarget(currentForce);
                 }
@@ -218,9 +218,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
 
     @Override
     public void onWorkoutProgressUpdated(long elapsedTimeSeconds) {
-        requireActivity().runOnUiThread(() -> {
-            timerTextView.setText(String.format(Locale.getDefault(), "%d", elapsedTimeSeconds));
-        });
+        requireActivity().runOnUiThread(() -> timerTextView.setText(String.format(Locale.getDefault(), "%d", elapsedTimeSeconds)));
     }
 
     public void resetWorkoutState() {
@@ -241,6 +239,12 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
         if (bodyPercentageTextView != null) {
             bodyPercentageTextView.setText(R.string.n_a);
             bodyPercentageTextView.setVisibility(View.GONE);
+        }
+        if (timerIcon != null) timerIcon.setVisibility(View.GONE);
+        if (timerTextView != null) {
+            timerTextView.setVisibility(View.GONE);
+            timerTextView.setText(R.string.zero);
+            workout.setElapsedTimeMillis(0);
         }
         setForceBarPosition(0.0f);
         handler.removeCallbacksAndMessages(null);

@@ -50,4 +50,16 @@
     <string name="body_weight_button_desc">Body weight dialog button</string>
     <string name="timer_icon_desc">Timer icon</string>
     <string name="zero">0</string>
+    <string name="add_workout">Add workout</string>
+    <string name="x">X</string>
+    <string name="reps">Reps</string>
+    <string name="body_percentage">Body %</string>
+    <string name="exercise_name">Exercise Name</string>
+    <string name="create_new_workout">Create New Workout</string>
+    <string name="name">Name</string>
+    <string name="description_optional">Description (optional)</string>
+    <string name="add">Add</string>
+    <string name="add_exercise">Add exercise</string>
+    <string name="delete_workout">Delete Workout</string>
+    <string name="are_you_sure_you_want_to_delete_this_workout">Are you sure you want to delete this workout?</string>
 </resources>

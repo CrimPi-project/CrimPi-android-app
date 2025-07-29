@@ -2,7 +2,6 @@ package com.almogbb.crimpi.workouts;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 public abstract class Workout {
 
@@ -19,7 +18,6 @@ public abstract class Workout {
     // NEW: Timer related attributes
     protected long startTimeMillis; // Timestamp when workout (or current active segment) started
     protected long elapsedTimeMillis; // Total time spent in ACTIVE state
-    protected long pausedTimeMillis; // Total time accumulated while PAUSED
     protected Runnable timerRunnable; // Runnable for timer updates
 
     public void setListener(WorkoutListener listener) {
@@ -68,10 +66,13 @@ public abstract class Workout {
             return elapsedTimeMillis / 1000; // Return accumulated time if paused/stopped
         }
     }
+    public void setElapsedTimeMillis(long elapsedTimeMillis) {
+        this.elapsedTimeMillis = elapsedTimeMillis;
+    }
 
     // NEW: Internal Timer Management
     protected void startTimer() {
-        handler.removeCallbacks(timerRunnable); // Ensure no duplicate runnables
+        handler.removeCallbacks(timerRunnable);
         timerRunnable = new Runnable() {
             @Override
             public void run() {

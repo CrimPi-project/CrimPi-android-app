@@ -1,0 +1,125 @@
+<!-- item_add_exercise.xml -->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="@color/primary_navy"
+    app:cardCornerRadius="6dp"
+    app:cardElevation="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layoutDirection="ltr"
+        android:padding="10dp">
+
+        <!-- Exercise Name -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="3"
+            android:hint="@string/exercise_name"
+            android:textColorHint="#CCCCCC"
+            app:boxBackgroundColor="@color/primary_navy"
+            app:boxCornerRadiusBottomEnd="6dp"
+            app:boxCornerRadiusBottomStart="6dp"
+            app:boxCornerRadiusTopEnd="6dp"
+            app:boxCornerRadiusTopStart="6dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_text_exercise_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapSentences"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:textColor="@color/primary_text_color"
+                tools:ignore="TouchTargetSizeCheck" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- "x" Separator (Text View) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="@string/x"
+            android:textColor="@color/primary_text_color"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Repetitions -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="2"
+            android:hint="@string/reps"
+            android:textColorHint="@color/text_light_gray"
+            app:boxBackgroundColor="@color/primary_navy"
+            app:boxCornerRadiusBottomEnd="6dp"
+            app:boxCornerRadiusBottomStart="6dp"
+            app:boxCornerRadiusTopEnd="6dp"
+            app:boxCornerRadiusTopStart="6dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_text_repetitions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:textColor="@color/primary_text_color"
+                tools:ignore="TouchTargetSizeCheck" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Min Body Percentage -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="2"
+            android:hint="@string/body_percentage"
+            android:textColorHint="@color/text_light_gray"
+            app:boxBackgroundColor="@color/primary_navy"
+            app:boxCornerRadiusBottomEnd="6dp"
+            app:boxCornerRadiusBottomStart="6dp"
+            app:boxCornerRadiusTopEnd="6dp"
+            app:boxCornerRadiusTopStart="6dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_text_min_body_percentage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:textColor="@color/text_light_gray"
+                tools:ignore="TouchTargetSizeCheck" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Remove Exercise Button -->
+        <Button
+            android:id="@+id/button_remove_exercise"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:backgroundTint="@android:color/transparent"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="8dp"
+            android:text="@string/x"
+            android:textColor="@color/purple_200"
+            android:textSize="12sp"
+            app:cornerRadius="4dp"
+            app:strokeColor="@color/purple_200"
+            app:strokeWidth="1dp"
+            tools:ignore="TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

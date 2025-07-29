@@ -1,0 +1,116 @@
+<!-- item_workout.xml -->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="@color/primary_navy"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"> <!-- Using a direct color code for consistency with previous outputs -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Collapsed View (Workout Name) -->
+        <TextView
+            android:id="@+id/text_view_workout_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/primary_text_color"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Workout" />
+
+        <!-- LinearLayout to group Duration and Sets, forcing LTR -->
+        <LinearLayout
+            android:id="@+id/layout_duration_sets_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layoutDirection="ltr"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_view_workout_name">
+
+            <TextView
+                android:id="@+id/text_view_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_light_gray"
+                android:textSize="14sp"
+                tools:text="Duration: Workout duration" />
+
+            <TextView
+                android:id="@+id/text_view_sets"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:textColor="@color/text_light_gray"
+                android:textSize="14sp"
+                tools:text="Sets: Sets number" />
+
+        </LinearLayout>
+
+
+        <!-- Expanded View (Workout Details and GO! button) -->
+        <LinearLayout
+            android:id="@+id/layout_expanded_details"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layoutDirection="ltr"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_duration_sets_container"
+            tools:visibility="visible">
+
+            <!-- This LinearLayout will be populated dynamically with exercise descriptions -->
+            <LinearLayout
+                android:id="@+id/layout_exercises_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="8dp">
+
+                <!-- Example of how exercise descriptions will look (dynamically added) -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/primary_text_color"
+                    android:textSize="16sp"
+                    tools:text="Exercise 1" />
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/button_go"
+                style="@style/RoundedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="16dp"
+                android:elevation="4dp"
+                android:paddingStart="24dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="24dp"
+                android:paddingBottom="12dp"
+                android:stateListAnimator="@null"
+                android:text="@string/go"
+                android:textColor="@color/primary_text_color"
+                app:cornerRadius="8dp" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
