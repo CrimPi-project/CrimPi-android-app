@@ -193,7 +193,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
         updateBodyPercentage(forceValue);
     }
 
-    public void onWorkoutStopped() {
+    public void onWorkoutCompleted() {
         requireActivity().runOnUiThread(() -> {
             // Reset all workout‑related UI elements
             resetWorkoutState();
@@ -218,7 +218,11 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
 
     @Override
     public void onWorkoutProgressUpdated(long elapsedTimeSeconds) {
-        requireActivity().runOnUiThread(() -> timerTextView.setText(String.format(Locale.getDefault(), "%d", elapsedTimeSeconds)));
+        if (!isAdded()) return; // Defensive check
+        requireActivity().runOnUiThread(() -> {
+            long seconds = elapsedTimeSeconds % 60;
+            timerTextView.setText(String.format(Locale.getDefault(), "%d", elapsedTimeSeconds));
+        });
     }
 
     public void resetWorkoutState() {
@@ -346,5 +350,10 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
     public void onDestroyView() {
         super.onDestroyView();
         handler.removeCallbacksAndMessages(null);
+        if (workout != null) {
+            workout.setListener(null);
+            workout.stop();
+            workout = null;
+        }
     }
 }

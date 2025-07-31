@@ -11,7 +11,7 @@ public interface WorkoutListener {
     void onForceChanged(float forceValue, boolean belowTarget);
 
     /** Called when workout is stopped or ended */
-    void onWorkoutStopped();
+    void onWorkoutCompleted();
 
     /** Called when a target force is set */
     void onTargetSet(float targetPercentage);

@@ -34,10 +34,10 @@ public class FreestyleWorkout extends Workout {
     @Override
     public void stop() {
         targetSet = false;
-        targetForcePercentage = -1f;
+        targetForce = -1f;
         workoutStarted = false;
         handler.removeCallbacksAndMessages(null);
         stopTimer();
-        if (listener != null) listener.onWorkoutStopped();
+        if (listener != null) listener.onWorkoutCompleted();
     }
 }

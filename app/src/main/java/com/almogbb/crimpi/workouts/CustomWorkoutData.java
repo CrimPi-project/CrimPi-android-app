@@ -1,9 +1,11 @@
 package com.almogbb.crimpi.workouts;
 
+import java.io.Serializable; // Import Serializable
 import java.util.List;
 
 // This data class will be used for JSON serialization/deserialization.
-public class CustomWorkoutData {
+// It now implements Serializable to be passed via Bundle.
+public class CustomWorkoutData implements Serializable { // ADDED: implements Serializable
     private String id; // Unique ID for the workout
     private String name;
     private String description;

@@ -10,7 +10,7 @@ public abstract class Workout {
     // Common state
     protected boolean workoutStarted = false;
     protected boolean targetSet = false;
-    protected float targetForcePercentage = -1f;
+    protected float targetForce = -1f;
     protected static final float MAX_FORCE_VALUE = 100f;
 
     protected Handler handler = new Handler(Looper.getMainLooper());
@@ -36,8 +36,7 @@ public abstract class Workout {
         // calculate below/above target
         boolean below = false;
         if (targetSet) {
-            float currentForcePercentage = force / MAX_FORCE_VALUE;
-            below = (currentForcePercentage < targetForcePercentage);
+            below = (force < targetForce);
         }
         // Notify fragment
         if (listener != null) {
@@ -51,11 +50,15 @@ public abstract class Workout {
 
     public void setTarget(float forceValue) {
         if (!workoutStarted) return;
-        float percentage = forceValue / MAX_FORCE_VALUE;
-        if (percentage > 1f) percentage = 1f;
-        targetForcePercentage = percentage;
-        targetSet = true;
-        if (listener != null) listener.onTargetSet(targetForcePercentage);
+        this.targetForce = forceValue; // Store the absolute target force
+        this.targetSet = true;
+
+        if (listener != null) {
+            // Calculate a UI-friendly percentage for the listener, relative to MAX_FORCE_VALUE
+            float uiTargetPercentageForUI = forceValue / MAX_FORCE_VALUE;
+            if (uiTargetPercentageForUI > 1f) uiTargetPercentageForUI = 1f;
+            listener.onTargetSet(uiTargetPercentageForUI); // Pass the UI-friendly percentage
+        }
     }
 
     // NEW: Getters for timer data

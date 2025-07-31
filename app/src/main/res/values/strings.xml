@@ -62,4 +62,12 @@
     <string name="add_exercise">Add exercise</string>
     <string name="delete_workout">Delete Workout</string>
     <string name="are_you_sure_you_want_to_delete_this_workout">Are you sure you want to delete this workout?</string>
+    <string name="workout_name">Workout Name</string>
+    <string name="status">Status</string>
+    <string name="secondary_status">Secondary Status</string>
+    <string name="timer">Timer</string>
+    <string name="exercisetimer">exerciseTimer</string>
+    <string name="resttimer">restTimer</string>
+    <string name="workout_completed">Workout Completed!</string>
+    <string name="workout_started">Workout Started!</string>
 </resources>

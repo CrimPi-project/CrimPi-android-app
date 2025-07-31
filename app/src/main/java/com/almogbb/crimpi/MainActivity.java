@@ -1,10 +1,12 @@
 // MainActivity.java
 package com.almogbb.crimpi;
 
+import com.almogbb.crimpi.fragments.CustomWorkoutFragment;
 import com.almogbb.crimpi.fragments.FreestyleWorkoutFragment;
 import com.almogbb.crimpi.fragments.HomeFragment;
 import com.almogbb.crimpi.fragments.BodyWeightDialogFragment;
 import com.almogbb.crimpi.fragments.MyWorkoutsFragment;
+import com.almogbb.crimpi.workouts.CustomWorkoutData;
 import com.google.android.material.navigation.NavigationView; // NEW
 
 import android.Manifest;
@@ -82,6 +84,8 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
     private FreestyleWorkoutFragment freestyleWorkoutFragment;
 
     private MyWorkoutsFragment myWorkoutsFragment;
+
+    private CustomWorkoutFragment customWorkoutFragment;
     // NEW: Variable to keep track of the currently active fragment
     private Fragment activeFragment;
 
@@ -104,6 +108,11 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
     private static final UUID ENV_SENSE_SERVICE_UUID = UUID.fromString("0000181A-0000-1000-8000-00805F9B34FB");
     private static final UUID TEMPERATURE_CHARACTERISTIC_UUID = UUID.fromString("00002A6E-0000-1000-8000-00805F9B34FB");
     private static final UUID CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805F9B34FB");
+
+    private static final String HOME_FRAGMENT_TAG = "HomeFragmentTag";
+    private static final String FREESTYLE_WORKOUT_FRAGMENT_TAG = "FreestyleFragmentTag";
+    private static final String MY_WORKOUTS_FRAGMENT_TAG = "MyWorkoutsFragmentTag";
+    private static final String CUSTOM_WORKOUT_FRAGMENT_TAG = "CustomWorkoutFragmentTag";
 
     @Override
     public void onBodyWeightEntered(float weight) {
@@ -239,6 +248,8 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
                         // NEW: Update the currently active fragment
                         if (activeFragment instanceof FreestyleWorkoutFragment) {
                             ((FreestyleWorkoutFragment) activeFragment).updateForceFromBLE(forceValue);
+                        } else if (activeFragment instanceof CustomWorkoutFragment) { // NEW: Add this block for CustomWorkoutFragment
+                            ((CustomWorkoutFragment) activeFragment).updateForceFromBLE(forceValue);
                         }
                         // Add more 'else if' for other fragments that need this data
                     });
@@ -398,11 +409,18 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
 
         // Save which fragment is currently active by its tag
         if (activeFragment instanceof HomeFragment) {
-            outState.putString("activeFragmentTag", "HomeFragmentTag");
+            outState.putString("activeFragmentTag", HOME_FRAGMENT_TAG);
         } else if (activeFragment instanceof FreestyleWorkoutFragment) {
-            outState.putString("activeFragmentTag", "FreestyleFragmentTag");
+            outState.putString("activeFragmentTag", FREESTYLE_WORKOUT_FRAGMENT_TAG);
         } else if (activeFragment instanceof MyWorkoutsFragment) {
-            outState.putString("activeFragmentTag", "MyWorkoutsFragmentTag");
+            outState.putString("activeFragmentTag", MY_WORKOUTS_FRAGMENT_TAG);
+        } else if (activeFragment instanceof CustomWorkoutFragment) {
+            outState.putString("activeFragmentTag", CUSTOM_WORKOUT_FRAGMENT_TAG);
+            // Save workout data
+            CustomWorkoutFragment customFrag = (CustomWorkoutFragment) activeFragment;
+            if (customFrag.getWorkoutData() != null) {
+                outState.putSerializable("customWorkoutData", customFrag.getWorkoutData());
+            }
         }
     }
 
@@ -484,6 +502,7 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
             homeFragment = new HomeFragment();
             freestyleWorkoutFragment = new FreestyleWorkoutFragment(); // Instantiate Freestyle Fragment
             myWorkoutsFragment = new MyWorkoutsFragment();
+            customWorkoutFragment = new CustomWorkoutFragment(); // NEW: Initialize CustomWorkoutFragment
 
             // Load HomeFragment initially
             getSupportFragmentManager().beginTransaction()
@@ -509,6 +528,15 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
                 freestyleWorkoutFragment = new FreestyleWorkoutFragment();
             }
 
+            customWorkoutFragment = (CustomWorkoutFragment) fm.findFragmentByTag("CustomWorkoutFragmentTag");
+            if (customWorkoutFragment == null) {
+                // Try to restore saved workout data if you saved it previously (step 3 will do that)
+                CustomWorkoutData savedData = (CustomWorkoutData) savedInstanceState.getSerializable("customWorkoutData");
+                if (savedData != null) {
+                    customWorkoutFragment = CustomWorkoutFragment.newInstance(savedData);
+                }
+            }
+
             // Decide which one should be active based on the saved tag
             switch (savedTag) {
                 case "FreestyleFragmentTag":
@@ -516,6 +544,9 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
                     break;
                 case "MyWorkoutsFragmentTag":
                     activeFragment = myWorkoutsFragment;
+                    break;
+                case "CustomWorkoutFragmentTag":
+                    activeFragment = customWorkoutFragment;
                     break;
                 default:
                     activeFragment = homeFragment;
@@ -579,9 +610,10 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
     }
 
     // Helper method to load fragments
-    private void loadFragment(Fragment fragment) {
+    public void loadFragment(Fragment fragment) { // Changed to public
         FragmentManager fm = getSupportFragmentManager();
 
+        // Ensure we have the latest instance of the fragment if it already exists
         if (fragment instanceof FreestyleWorkoutFragment) {
             Fragment existing = fm.findFragmentByTag("FreestyleFragmentTag");
             if (existing != null) {
@@ -600,7 +632,13 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
                 fragment = existing;
                 myWorkoutsFragment = (MyWorkoutsFragment) existing;
             }
+        } else if (fragment instanceof CustomWorkoutFragment) { // NEW: Handle CustomWorkoutFragment
+            // For CustomWorkoutFragment, we always create a new instance via newInstance(workoutData)
+            // so we don't need to find an existing one here. The 'fragment' parameter
+            // passed to loadFragment will already be the new instance.
+            customWorkoutFragment = (CustomWorkoutFragment) fragment; // Assign to class field for tracking
         }
+
 
         if (fragment != null && activeFragment != fragment) {
             FragmentTransaction transaction = fm.beginTransaction();
@@ -614,19 +652,23 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
             } else if (fragment instanceof FreestyleWorkoutFragment) {
                 tag = "FreestyleFragmentTag";
                 menuItemId = R.id.nav_freestyle_workout;
-            } else {
+            } else if (fragment instanceof MyWorkoutsFragment) {
                 tag = "MyWorkoutsFragmentTag";
                 menuItemId = R.id.nav_my_workouts;
+            } else { // This will now correctly handle CustomWorkoutFragment
+                tag = "CustomWorkoutFragmentTag";
+                menuItemId = -1; // No direct menu item for CustomWorkoutFragment
             }
 
             transaction.replace(R.id.fragment_container, fragment, tag);
             transaction.commit();
 
             activeFragment = fragment;
-            if (navigationView != null) {
+            if (navigationView != null && menuItemId != -1) {
                 navigationView.setCheckedItem(menuItemId);
             }
 
+            // Reset workout state for Freestyle when navigating away from it
             if (fragment instanceof FreestyleWorkoutFragment) {
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (activeFragment != null && activeFragment.isAdded()) {
@@ -634,306 +676,306 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
                     }
                 });
             }
+            // No reset needed for CustomWorkoutFragment on load, as it starts automatically
         }
     }
 
 
+    // --- Permission Handling ---
+    private boolean checkAndRequestPermissions() {
+        List<String> permissionsToRequest = new ArrayList<>();
 
-        // --- Permission Handling ---
-        private boolean checkAndRequestPermissions () {
-            List<String> permissionsToRequest = new ArrayList<>();
-
-            // Location permission is required for BLE scanning on Android 6.0+ (API 23-30)
-            // For Android 12 (API 31) and above
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-                permissionsToRequest.add(Manifest.permission.BLUETOOTH_SCAN);
-            }
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT);
-            }
-
-            if (!permissionsToRequest.isEmpty()) {
-                ActivityCompat.requestPermissions(this, permissionsToRequest.toArray(new String[0]), REQUEST_BLUETOOTH_PERMISSIONS);
-                return false; // Permissions not yet granted
-            }
-            return true; // All necessary permissions are already granted
+        // Location permission is required for BLE scanning on Android 6.0+ (API 23-30)
+        // For Android 12 (API 31) and above
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(Manifest.permission.BLUETOOTH_SCAN);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT);
         }
 
-        @Override
-        public void onRequestPermissionsResult ( int requestCode, @NonNull String[] permissions,
-        @NonNull int[] grantResults){
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            if (requestCode == REQUEST_BLUETOOTH_PERMISSIONS) {
-                boolean allPermissionsGranted = true;
-                for (int result : grantResults) {
-                    if (result != PackageManager.PERMISSION_GRANTED) {
-                        allPermissionsGranted = false;
-                        break;
-                    }
-                }
+        if (!permissionsToRequest.isEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsToRequest.toArray(new String[0]), REQUEST_BLUETOOTH_PERMISSIONS);
+            return false; // Permissions not yet granted
+        }
+        return true; // All necessary permissions are already granted
+    }
 
-                if (allPermissionsGranted) {
-                    // All permissions granted, show scan dialog
-                    showScanDialog();
-                } else {
-                    // Permissions denied
-                    bluetoothButton.setEnabled(false);
-                    Toast.makeText(this, R.string.bluetooth_permissions_denied, Toast.LENGTH_LONG).show();
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_BLUETOOTH_PERMISSIONS) {
+            boolean allPermissionsGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allPermissionsGranted = false;
+                    break;
                 }
+            }
+
+            if (allPermissionsGranted) {
+                // All permissions granted, show scan dialog
+                showScanDialog();
+            } else {
+                // Permissions denied
+                bluetoothButton.setEnabled(false);
+                Toast.makeText(this, R.string.bluetooth_permissions_denied, Toast.LENGTH_LONG).show();
             }
         }
+    }
 
-        // --- BLE Scan Dialog Logic ---
-        private void showScanDialog () {
-            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-            LayoutInflater inflater = this.getLayoutInflater();
-            View dialogView = inflater.inflate(R.layout.dialog_bluetooth_scan, null);
-            dialogBuilder.setView(dialogView);
+    // --- BLE Scan Dialog Logic ---
+    private void showScanDialog() {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_bluetooth_scan, null);
+        dialogBuilder.setView(dialogView);
 
-            // Initialize dialog UI elements
-            scanProgressBar = dialogView.findViewById(R.id.scanProgressBar);
-            RecyclerView deviceRecyclerView = dialogView.findViewById(R.id.deviceRecyclerView);
-            noDevicesFoundText = dialogView.findViewById(R.id.noDevicesFoundText);
+        // Initialize dialog UI elements
+        scanProgressBar = dialogView.findViewById(R.id.scanProgressBar);
+        RecyclerView deviceRecyclerView = dialogView.findViewById(R.id.deviceRecyclerView);
+        noDevicesFoundText = dialogView.findViewById(R.id.noDevicesFoundText);
 
-            // Set up RecyclerView
-            deviceRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-            deviceRecyclerView.setAdapter(deviceAdapter);
+        // Set up RecyclerView
+        deviceRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        deviceRecyclerView.setAdapter(deviceAdapter);
 
-            // Reset list and visibility for new scan
-            int oldSize = deviceList.size(); // Get current size before clearing
-            deviceList.clear(); // Clear the underlying data list
-            if (oldSize > 0) { // Only notify if there were items to remove
-                deviceAdapter.notifyItemRangeRemoved(0, oldSize); // Notify adapter of specific removal
-            }
-            // Original line that caused the warning: // deviceAdapter.notifyDataSetChanged();
-            noDevicesFoundText.setVisibility(View.GONE);
-            scanProgressBar.setVisibility(View.VISIBLE); // Show progress bar when scan starts
-
-            // Create and show the dialog
-            scanDialog = dialogBuilder.create();
-            scanDialog.show();
-
-            // Start BLE scan
-            startBleScan();
+        // Reset list and visibility for new scan
+        int oldSize = deviceList.size(); // Get current size before clearing
+        deviceList.clear(); // Clear the underlying data list
+        if (oldSize > 0) { // Only notify if there were items to remove
+            deviceAdapter.notifyItemRangeRemoved(0, oldSize); // Notify adapter of specific removal
         }
+        // Original line that caused the warning: // deviceAdapter.notifyDataSetChanged();
+        noDevicesFoundText.setVisibility(View.GONE);
+        scanProgressBar.setVisibility(View.VISIBLE); // Show progress bar when scan starts
 
-        // --- BLE Scanning Logic ---
-        private void startBleScan () {
-            if (bluetoothLeScanner == null) {
-                Toast.makeText(this, "Bluetooth LE Scanner not available.", Toast.LENGTH_SHORT).show();
-                if (scanDialog != null && scanDialog.isShowing()) {
-                    scanProgressBar.setVisibility(View.GONE);
-                    noDevicesFoundText.setText(R.string.scanner_not_available);
-                    noDevicesFoundText.setVisibility(View.VISIBLE);
-                }
-                return;
-            }
+        // Create and show the dialog
+        scanDialog = dialogBuilder.create();
+        scanDialog.show();
 
-            // Stop any ongoing scan before starting a new one
-            stopBleScan();
+        // Start BLE scan
+        startBleScan();
+    }
 
-            // --- FIX FOR WARNING: Use notifyItemRangeRemoved instead of notifyDataSetChanged for clearing RecyclerView ---
-            int oldSize = deviceList.size(); // Get current size before clearing
-            deviceList.clear(); // Clear the underlying data list
-            if (oldSize > 0) { // Only notify if there were items to remove
-                deviceAdapter.notifyItemRangeRemoved(0, oldSize); // Notify adapter of specific removal
-            }
-            // Original line that caused the warning: // deviceAdapter.notifyDataSetChanged();
-            // This is now replaced by the above more specific notification.
-            discoveredDevicesMap.clear(); // Clear the map for de-duplication
-            // --- END FIX ---
-
+    // --- BLE Scanning Logic ---
+    private void startBleScan() {
+        if (bluetoothLeScanner == null) {
+            Toast.makeText(this, "Bluetooth LE Scanner not available.", Toast.LENGTH_SHORT).show();
             if (scanDialog != null && scanDialog.isShowing()) {
-                scanProgressBar.setVisibility(View.VISIBLE);
-                noDevicesFoundText.setVisibility(View.GONE);
+                scanProgressBar.setVisibility(View.GONE);
+                noDevicesFoundText.setText(R.string.scanner_not_available);
+                noDevicesFoundText.setVisibility(View.VISIBLE);
             }
-
-            Log.d(TAG, "Starting BLE scan...");
-
-            // Add explicit permission checks with Toast feedback
-            boolean hasScanPermission;
-            boolean hasConnectPermission;
-
-            // Note: The permission checks below are simplified for this snippet.
-            // The full `MainActivity.java` in the immersive artifact handles API level differences.
-
-            hasScanPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED;
-            hasConnectPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
-            if (!hasScanPermission || !hasConnectPermission) {
-                Toast.makeText(this, "Bluetooth (Scan/Connect) permissions not granted.", Toast.LENGTH_LONG).show();
-                if (scanDialog != null && scanDialog.isShowing()) {
-                    scanProgressBar.setVisibility(View.GONE);
-                    noDevicesFoundText.setText(R.string.permissions_not_granted);
-                    noDevicesFoundText.setVisibility(View.VISIBLE);
-                }
-                return;
-            }
-
-            // Check if Bluetooth is actually enabled (system-wide)
-            if (!bluetoothAdapter.isEnabled()) {
-                Toast.makeText(this, "Bluetooth is disabled. Please enable it in settings.", Toast.LENGTH_LONG).show();
-                if (scanDialog != null && scanDialog.isShowing()) {
-                    scanProgressBar.setVisibility(View.GONE);
-                    noDevicesFoundText.setText(R.string.bluetooth_disabled);
-                    noDevicesFoundText.setVisibility(View.VISIBLE);
-                }
-                return;
-            }
-
-            // --- Scan Filters and Settings ---
-            List<ScanFilter> scanFilters = new ArrayList<>();
-            ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(ENV_SENSE_SERVICE_UUID)).build();
-            scanFilters.add(filter);
-
-            ScanSettings scanSettings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
-
-            bluetoothLeScanner.startScan(scanFilters, scanSettings, scanCallback);
-
-            // Stop scan after a period (e.g., 10 seconds)
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                stopBleScan();
-                runOnUiThread(() -> {
-                    if (scanDialog != null && scanDialog.isShowing()) {
-                        scanProgressBar.setVisibility(View.GONE);
-                        if (deviceList.isEmpty()) {
-                            noDevicesFoundText.setVisibility(View.VISIBLE);
-                        }
-                    }
-                });
-            }, 10000);
+            return;
         }
 
-        private void stopBleScan () {
-            if (bluetoothLeScanner == null) return;
+        // Stop any ongoing scan before starting a new one
+        stopBleScan();
 
-            boolean hasScanPermission;
-            boolean hasConnectPermission;
+        // --- FIX FOR WARNING: Use notifyItemRangeRemoved instead of notifyDataSetChanged for clearing RecyclerView ---
+        int oldSize = deviceList.size(); // Get current size before clearing
+        deviceList.clear(); // Clear the underlying data list
+        if (oldSize > 0) { // Only notify if there were items to remove
+            deviceAdapter.notifyItemRangeRemoved(0, oldSize); // Notify adapter of specific removal
+        }
+        // Original line that caused the warning: // deviceAdapter.notifyDataSetChanged();
+        // This is now replaced by the above more specific notification.
+        discoveredDevicesMap.clear(); // Clear the map for de-duplication
+        // --- END FIX ---
 
-            hasScanPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED;
-            hasConnectPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
-            if (!hasScanPermission || !hasConnectPermission) {
-                Log.w(TAG, "Attempted to stop scan without BLUETOOTH_SCAN/CONNECT permissions.");
-                return;
-            }
-
-            bluetoothLeScanner.stopScan(scanCallback);
-            Log.d(TAG, "BLE scan stopped.");
+        if (scanDialog != null && scanDialog.isShowing()) {
+            scanProgressBar.setVisibility(View.VISIBLE);
+            noDevicesFoundText.setVisibility(View.GONE);
         }
 
-        // --- Helper method to process a single ScanResult ---
-        private void processScanResult (ScanResult result){
-            if (result != null && result.getDevice() != null) {
-                String currentDeviceName;
-                String currentDeviceAddress;
-                BluetoothDevice device = result.getDevice();
+        Log.d(TAG, "Starting BLE scan...");
 
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                    Log.w(TAG, "BLUETOOTH_CONNECT permission not granted, cannot get device name/address.");
-                    currentDeviceName = "Unknown Device (Perm Denied)";
-                } else {
-                    currentDeviceName = device.getName();
-                }
-                currentDeviceAddress = device.getAddress();
+        // Add explicit permission checks with Toast feedback
+        boolean hasScanPermission;
+        boolean hasConnectPermission;
 
-                if (currentDeviceName == null || currentDeviceName.isEmpty()) {
-                    currentDeviceName = "N/A";
-                }
+        // Note: The permission checks below are simplified for this snippet.
+        // The full `MainActivity.java` in the immersive artifact handles API level differences.
 
-                // --- Confirmation Logic ---
-                // Only add to list if it's confirmed to be a Pico W (starts with "Pico")
-                boolean isPicoW = currentDeviceName.startsWith("Pico");
-
-                if (isPicoW) {
-                    final String finalDeviceName = currentDeviceName;
-                    final String finalDeviceAddress = currentDeviceAddress;
-
-                    // Only add if it's a new device or name has changed
-                    if (!discoveredDevicesMap.containsKey(finalDeviceAddress)) {
-                        discoveredDevicesMap.put(finalDeviceAddress, device); // Store the actual BluetoothDevice object
-                        runOnUiThread(() -> {
-                            deviceList.add(new BluetoothDeviceEntry(finalDeviceName, finalDeviceAddress));
-                            deviceAdapter.notifyItemInserted(deviceList.size() - 1);
-                            noDevicesFoundText.setVisibility(View.GONE); // Hide "No devices found" if a device is found
-                            scanProgressBar.setVisibility(View.GONE);
-                        });
-                        Log.d(TAG, "Found confirmed Pico W: Name='" + finalDeviceName + "', Address='" + finalDeviceAddress + "'");
-                    }
-                } else {
-                    Log.d(TAG, "Skipping non-PicoW device: " + currentDeviceName + " (" + currentDeviceAddress + ")");
-                }
+        hasScanPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED;
+        hasConnectPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
+        if (!hasScanPermission || !hasConnectPermission) {
+            Toast.makeText(this, "Bluetooth (Scan/Connect) permissions not granted.", Toast.LENGTH_LONG).show();
+            if (scanDialog != null && scanDialog.isShowing()) {
+                scanProgressBar.setVisibility(View.GONE);
+                noDevicesFoundText.setText(R.string.permissions_not_granted);
+                noDevicesFoundText.setVisibility(View.VISIBLE);
             }
+            return;
         }
 
-        // --- Connection Logic ---
-        public void connectToDevice (BluetoothDevice device){
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                Log.e(TAG, "BLUETOOTH_CONNECT permission not granted for connectGatt.");
-                return;
+        // Check if Bluetooth is actually enabled (system-wide)
+        if (!bluetoothAdapter.isEnabled()) {
+            Toast.makeText(this, "Bluetooth is disabled. Please enable it in settings.", Toast.LENGTH_LONG).show();
+            if (scanDialog != null && scanDialog.isShowing()) {
+                scanProgressBar.setVisibility(View.GONE);
+                noDevicesFoundText.setText(R.string.bluetooth_disabled);
+                noDevicesFoundText.setVisibility(View.VISIBLE);
             }
-            // If already connected, close previous connection
-            if (bluetoothGatt != null) {
-                bluetoothGatt.close();
-                bluetoothGatt = null;
-            }
-            // Connect to the GATT server on the device
-            try {
-                bluetoothGatt = device.connectGatt(this, false, gattCallback); // 'false' for direct connection
-            } catch (SecurityException e) {
-                Log.e(TAG, "SecurityException: Missing BLUETOOTH_CONNECT permission for connectGatt.", e);
-                return;
-            }
+            return;
+        }
 
+        // --- Scan Filters and Settings ---
+        List<ScanFilter> scanFilters = new ArrayList<>();
+        ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(ENV_SENSE_SERVICE_UUID)).build();
+        scanFilters.add(filter);
+
+        ScanSettings scanSettings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
+
+        bluetoothLeScanner.startScan(scanFilters, scanSettings, scanCallback);
+
+        // Stop scan after a period (e.g., 10 seconds)
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            stopBleScan();
             runOnUiThread(() -> {
-                try {
-                    // Update instruction text in the active fragment
-                    String deviceDisplayName = (device.getName() != null ? device.getName() : device.getAddress());
-                    if (activeFragment instanceof HomeFragment) {
-                        ((HomeFragment) activeFragment).updateInstructionText(getString(R.string.connection_attempt, deviceDisplayName));
+                if (scanDialog != null && scanDialog.isShowing()) {
+                    scanProgressBar.setVisibility(View.GONE);
+                    if (deviceList.isEmpty()) {
+                        noDevicesFoundText.setVisibility(View.VISIBLE);
                     }
-                } catch (SecurityException e) {
-                    Log.e(TAG, "SecurityException: Cannot get device name/address for UI update.", e);
-                    runOnUiThread(() -> {
-                        if (activeFragment instanceof HomeFragment) {
-                            ((HomeFragment) activeFragment).updateInstructionText(getString(R.string.connection_attempt_permission_error));
-                        }
-                    });
                 }
             });
+        }, 10000);
+    }
 
-            // Dismiss the scan dialog once connection attempt starts
-            if (scanDialog != null && scanDialog.isShowing()) {
-                scanDialog.dismiss();
+    private void stopBleScan() {
+        if (bluetoothLeScanner == null) return;
+
+        boolean hasScanPermission;
+        boolean hasConnectPermission;
+
+        hasScanPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED;
+        hasConnectPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
+        if (!hasScanPermission || !hasConnectPermission) {
+            Log.w(TAG, "Attempted to stop scan without BLUETOOTH_SCAN/CONNECT permissions.");
+            return;
+        }
+
+        bluetoothLeScanner.stopScan(scanCallback);
+        Log.d(TAG, "BLE scan stopped.");
+    }
+
+    // --- Helper method to process a single ScanResult ---
+    private void processScanResult(ScanResult result) {
+        if (result != null && result.getDevice() != null) {
+            String currentDeviceName;
+            String currentDeviceAddress;
+            BluetoothDevice device = result.getDevice();
+
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                Log.w(TAG, "BLUETOOTH_CONNECT permission not granted, cannot get device name/address.");
+                currentDeviceName = "Unknown Device (Perm Denied)";
+            } else {
+                currentDeviceName = device.getName();
             }
-        }
+            currentDeviceAddress = device.getAddress();
 
-        @Override
-        protected void onPause () {
-            super.onPause();
-            // Unregister the BroadcastReceiver when the activity is paused
-            unregisterReceiver(bluetoothStateReceiver);
-        }
+            if (currentDeviceName == null || currentDeviceName.isEmpty()) {
+                currentDeviceName = "N/A";
+            }
 
-        @Override
-        protected void onResume () {
-            super.onResume();
-            // Register the BroadcastReceiver when the activity is resumed
-            IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-            registerReceiver(bluetoothStateReceiver, filter);
-            // Also update UI in case Bluetooth state changed while app was paused
-            updateBluetoothStatusUI();
-        }
+            // --- Confirmation Logic ---
+            // Only add to list if it's confirmed to be a Pico W (starts with "Pico")
+            boolean isPicoW = currentDeviceName.startsWith("Pico");
 
-        @Override
-        protected void onDestroy () {
-            super.onDestroy();
-            stopBleScan(); // Ensure scan is stopped when activity is destroyed
-            // Close GATT connection if it exists
-            if (bluetoothGatt != null) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                    Log.w(TAG, "BLUETOOTH_CONNECT permission missing during onDestroy for bluetoothGatt.close().");
+            if (isPicoW) {
+                final String finalDeviceName = currentDeviceName;
+                final String finalDeviceAddress = currentDeviceAddress;
+
+                // Only add if it's a new device or name has changed
+                if (!discoveredDevicesMap.containsKey(finalDeviceAddress)) {
+                    discoveredDevicesMap.put(finalDeviceAddress, device); // Store the actual BluetoothDevice object
+                    runOnUiThread(() -> {
+                        deviceList.add(new BluetoothDeviceEntry(finalDeviceName, finalDeviceAddress));
+                        deviceAdapter.notifyItemInserted(deviceList.size() - 1);
+                        noDevicesFoundText.setVisibility(View.GONE); // Hide "No devices found" if a device is found
+                        scanProgressBar.setVisibility(View.GONE);
+                    });
+                    Log.d(TAG, "Found confirmed Pico W: Name='" + finalDeviceName + "', Address='" + finalDeviceAddress + "'");
                 }
-                bluetoothGatt.close();
-                bluetoothGatt = null;
+            } else {
+                Log.d(TAG, "Skipping non-PicoW device: " + currentDeviceName + " (" + currentDeviceAddress + ")");
             }
         }
     }
+
+    // --- Connection Logic ---
+    public void connectToDevice(BluetoothDevice device) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "BLUETOOTH_CONNECT permission not granted for connectGatt.");
+            return;
+        }
+        // If already connected, close previous connection
+        if (bluetoothGatt != null) {
+            bluetoothGatt.close();
+            bluetoothGatt = null;
+        }
+        // Connect to the GATT server on the device
+        try {
+            bluetoothGatt = device.connectGatt(this, false, gattCallback); // 'false' for direct connection
+        } catch (SecurityException e) {
+            Log.e(TAG, "SecurityException: Missing BLUETOOTH_CONNECT permission for connectGatt.", e);
+            return;
+        }
+
+        runOnUiThread(() -> {
+            try {
+                // Update instruction text in the active fragment
+                String deviceDisplayName = (device.getName() != null ? device.getName() : device.getAddress());
+                if (activeFragment instanceof HomeFragment) {
+                    ((HomeFragment) activeFragment).updateInstructionText(getString(R.string.connection_attempt, deviceDisplayName));
+                }
+            } catch (SecurityException e) {
+                Log.e(TAG, "SecurityException: Cannot get device name/address for UI update.", e);
+                runOnUiThread(() -> {
+                    if (activeFragment instanceof HomeFragment) {
+                        ((HomeFragment) activeFragment).updateInstructionText(getString(R.string.connection_attempt_permission_error));
+                    }
+                });
+            }
+        });
+
+        // Dismiss the scan dialog once connection attempt starts
+        if (scanDialog != null && scanDialog.isShowing()) {
+            scanDialog.dismiss();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Unregister the BroadcastReceiver when the activity is paused
+        unregisterReceiver(bluetoothStateReceiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Register the BroadcastReceiver when the activity is resumed
+        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(bluetoothStateReceiver, filter);
+        // Also update UI in case Bluetooth state changed while app was paused
+        updateBluetoothStatusUI();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopBleScan(); // Ensure scan is stopped when activity is destroyed
+        // Close GATT connection if it exists
+        if (bluetoothGatt != null) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                Log.w(TAG, "BLUETOOTH_CONNECT permission missing during onDestroy for bluetoothGatt.close().");
+            }
+            bluetoothGatt.close();
+            bluetoothGatt = null;
+        }
+    }
+}

@@ -1,9 +1,10 @@
 package com.almogbb.crimpi.workouts;
 
+import java.io.Serializable;
 import java.util.List;
 
 // Represents a single set in a custom workout.
-public class WorkoutSet {
+public class WorkoutSet implements Serializable {
     private List<Exercise> exercises; // List of exercises in this set
     private int restAfterSetSeconds;   // Rest time after this set is completed
 

@@ -11,9 +11,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.fragment.app.FragmentManager;
-// Removed AlertDialog import as we're using custom dialog
 import androidx.recyclerview.widget.ItemTouchHelper;
 
+import com.almogbb.crimpi.MainActivity;
 import com.almogbb.crimpi.R;
 import com.almogbb.crimpi.adapters.WorkoutsAdapter;
 import com.almogbb.crimpi.workouts.CustomWorkoutData;
@@ -60,15 +60,17 @@ public class MyWorkoutsFragment extends Fragment implements
             @Override
             public void onGoButtonClick(CustomWorkoutData workoutData) {
                 System.out.println("GO! button clicked for workout: " + workoutData.getName());
-                // TODO: Implement navigation to workout execution screen
+                if (getActivity() instanceof MainActivity) {
+                    MainActivity mainActivity = (MainActivity) getActivity();
+                    // Create a new instance of CustomWorkoutFragment and pass the workoutData
+                    CustomWorkoutFragment customWorkoutFragment = CustomWorkoutFragment.newInstance(workoutData);
+                    mainActivity.loadFragment(customWorkoutFragment);
+                }
             }
         });
         workoutsRecyclerView.setAdapter(workoutsAdapter);
-
         newWorkoutFab.setOnClickListener(v -> showAddWorkoutDialog());
-
         setupSwipeToDelete();
-
         return view;
     }
 
@@ -111,8 +113,8 @@ public class MyWorkoutsFragment extends Fragment implements
         List<WorkoutSet> workoutExample = new ArrayList<>();
         workoutExample.add(new WorkoutSet(
                 Arrays.asList(
-                        new Exercise("Exercise 1", 3, 9, 0),
-                        new Exercise("Exercise 2", 3, 7, 0)
+                        new Exercise("Exercise 1", 3,  0),
+                        new Exercise("Exercise 2", 3, 0)
                 ),
                 60
         ));

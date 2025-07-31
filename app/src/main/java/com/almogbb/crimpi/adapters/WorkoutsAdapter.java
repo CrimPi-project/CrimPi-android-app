@@ -55,10 +55,7 @@ public class WorkoutsAdapter extends RecyclerView.Adapter<WorkoutsAdapter.Workou
         holder.workoutNameTextView.setText(currentWorkout.getName());
 
         // Format duration (e.g., 600 seconds -> "10m")
-        long totalMinutes = currentWorkout.getTotalDurationSeconds() / 60;
-        holder.durationTextView.setText(String.format("Duration: %dm", totalMinutes));
-
-        holder.setsTextView.setText(String.format("Sets: %d", currentWorkout.getTotalSets()));
+        holder.descriptionTextView.setText(String.format(currentWorkout.getDescription()));
 
         // Handle expansion/collapse
         final boolean isExpanded = position == expandedPosition;
@@ -76,9 +73,7 @@ public class WorkoutsAdapter extends RecyclerView.Adapter<WorkoutsAdapter.Workou
                     if (exercise.getRepetitions() > 0) {
                         exerciseText += String.format(" x %d", exercise.getRepetitions());
                     }
-                    if (exercise.getDurationSeconds() > 0) {
-                        exerciseText += String.format(" (%ds)", exercise.getDurationSeconds());
-                    }
+
                     exerciseTextView.setText(exerciseText);
                     exerciseTextView.setTextColor(holder.itemView.getContext().getResources().getColor(android.R.color.white));
                     exerciseTextView.setTextSize(16); // Match the tools:text size in XML
@@ -131,7 +126,7 @@ public class WorkoutsAdapter extends RecyclerView.Adapter<WorkoutsAdapter.Workou
     // ViewHolder class to hold references to the views in item_workout.xml
     public static class WorkoutViewHolder extends RecyclerView.ViewHolder {
         TextView workoutNameTextView;
-        TextView durationTextView;
+        TextView descriptionTextView;
         TextView setsTextView;
         LinearLayout expandedDetailsLayout;
         LinearLayout exercisesContainerLayout; // Container for dynamically added exercise TextViews
@@ -140,7 +135,7 @@ public class WorkoutsAdapter extends RecyclerView.Adapter<WorkoutsAdapter.Workou
         public WorkoutViewHolder(@NonNull View itemView) {
             super(itemView);
             workoutNameTextView = itemView.findViewById(R.id.text_view_workout_name);
-            durationTextView = itemView.findViewById(R.id.text_view_duration);
+            descriptionTextView = itemView.findViewById(R.id.text_view_duration);
             setsTextView = itemView.findViewById(R.id.text_view_sets);
             expandedDetailsLayout = itemView.findViewById(R.id.layout_expanded_details);
             exercisesContainerLayout = itemView.findViewById(R.id.layout_exercises_container);

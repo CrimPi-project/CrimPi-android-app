@@ -1,25 +1,23 @@
-// Exercise.java
 package com.almogbb.crimpi.workouts;
 
+import java.io.Serializable;
+
 // Represents a single exercise within a set.
-public class Exercise {
+public class Exercise implements Serializable {
     private String description; // e.g., "20mm max pull", "80% body weight pull"
     private int repetitions;    // Number of repetitions for this exercise
-    private int durationSeconds; // Duration for the exercise if it's time-based (e.g., 7s hang)
+    // Removed durationSeconds as per your updated requirements
     private int minBodyPercentage; // NEW: Minimum body weight percentage for the pull
 
+    // Constructor without minBodyPercentage (defaults to 0)
     public Exercise(String description, int repetitions) {
-        this(description, repetitions, 0, 0); // Default duration and minBodyPercentage to 0
+        this(description, repetitions, 0);
     }
 
-    public Exercise(String description, int repetitions, int durationSeconds) {
-        this(description, repetitions, durationSeconds, 0); // Default minBodyPercentage to 0
-    }
-
-    public Exercise(String description, int repetitions, int durationSeconds, int minBodyPercentage) {
+    // Constructor with minBodyPercentage
+    public Exercise(String description, int repetitions, int minBodyPercentage) {
         this.description = description;
         this.repetitions = repetitions;
-        this.durationSeconds = durationSeconds;
         this.minBodyPercentage = minBodyPercentage;
     }
 
@@ -30,10 +28,6 @@ public class Exercise {
 
     public int getRepetitions() {
         return repetitions;
-    }
-
-    public int getDurationSeconds() {
-        return durationSeconds;
     }
 
     public int getMinBodyPercentage() {
@@ -47,10 +41,6 @@ public class Exercise {
 
     public void setRepetitions(int repetitions) {
         this.repetitions = repetitions;
-    }
-
-    public void setDurationSeconds(int durationSeconds) {
-        this.durationSeconds = durationSeconds;
     }
 
     public void setMinBodyPercentage(int minBodyPercentage) {

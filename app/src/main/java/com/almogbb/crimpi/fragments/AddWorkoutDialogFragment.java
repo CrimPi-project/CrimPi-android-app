@@ -158,7 +158,7 @@ public class AddWorkoutDialogFragment extends DialogFragment {
                 return;
             }
 
-            exercises.add(new Exercise(exerciseDescription, repetitions, 0, minBodyPercentage)); // DurationSeconds set to 0 as per new design
+            exercises.add(new Exercise(exerciseDescription, repetitions, minBodyPercentage)); // DurationSeconds set to 0 as per new design
             totalDurationEstimate += (repetitions * 10); // Simple estimate: 10 seconds per rep
             totalRepsEstimate += repetitions;
         }
