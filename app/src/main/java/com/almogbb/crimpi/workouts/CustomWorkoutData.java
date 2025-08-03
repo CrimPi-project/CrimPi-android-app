@@ -10,18 +10,24 @@ public class CustomWorkoutData implements Serializable { // ADDED: implements Se
     private String name;
     private String description;
     private int totalDurationSeconds; // Calculated total duration for display
-    private int totalSets;            // Total number of sets for display
+    private int totalSets;
+
+    private final int restBetweenRepetitions;
+
+    private final int restBetweenSets;
     private List<WorkoutSet> workoutSets;
 
     public CustomWorkoutData(String id, String name, String description,
                              int totalDurationSeconds, int totalSets,
-                             List<WorkoutSet> workoutSets) {
+                             List<WorkoutSet> workoutSets,int restBetweenRepetitions,int restBetweenSets) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.totalDurationSeconds = totalDurationSeconds;
         this.totalSets = totalSets;
         this.workoutSets = workoutSets;
+        this.restBetweenRepetitions = restBetweenRepetitions;
+        this.restBetweenSets = restBetweenSets;
     }
 
     // Getters
@@ -72,5 +78,13 @@ public class CustomWorkoutData implements Serializable { // ADDED: implements Se
 
     public void setWorkoutSets(List<WorkoutSet> workoutSets) {
         this.workoutSets = workoutSets;
+    }
+
+    public int getRestBetweenRepetitions() {
+        return restBetweenRepetitions;
+    }
+
+    public int getRestBetweenSets() {
+        return restBetweenSets;
     }
 }

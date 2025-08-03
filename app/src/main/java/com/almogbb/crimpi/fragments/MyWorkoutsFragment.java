@@ -115,8 +115,7 @@ public class MyWorkoutsFragment extends Fragment implements
                 Arrays.asList(
                         new Exercise("Exercise 1", 3,  0),
                         new Exercise("Exercise 2", 3, 0)
-                ),
-                60
+                )
         ));
         dummyWorkouts.add(new CustomWorkoutData(
                 "example",
@@ -124,7 +123,9 @@ public class MyWorkoutsFragment extends Fragment implements
                 "A basic strength workout.",
                 600,
                 2,
-                workoutExample
+                workoutExample,
+                10,
+                60
         ));
 
         // Add dummy workouts if the list is empty (i.e., no workouts loaded from JSON)

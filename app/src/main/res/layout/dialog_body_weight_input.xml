@@ -27,6 +27,7 @@
         android:layout_marginBottom="24dp"
         android:backgroundTint="@color/purple_200"
         android:hint="@string/body_weight_hint"
+        android:importantForAutofill="no"
         android:inputType="numberDecimal"
         android:padding="12dp"
         android:textColor="@color/primary_text_color"

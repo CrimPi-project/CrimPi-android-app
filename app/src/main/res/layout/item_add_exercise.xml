@@ -37,8 +37,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textCapSentences"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
                 android:textColor="@color/primary_text_color"
                 tools:ignore="TouchTargetSizeCheck" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -72,8 +70,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="number"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
                 android:textColor="@color/primary_text_color"
                 tools:ignore="TouchTargetSizeCheck" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -97,25 +93,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
                 android:textColor="@color/text_light_gray"
                 tools:ignore="TouchTargetSizeCheck" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Remove Exercise Button -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_remove_exercise"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:backgroundTint="@android:color/transparent"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:minWidth="0dp"
             android:minHeight="0dp"
             android:padding="8dp"
             android:text="@string/x"
             android:textColor="@color/purple_200"
             android:textSize="12sp"
+            app:backgroundTint="@android:color/transparent"
             app:cornerRadius="4dp"
             app:strokeColor="@color/purple_200"
             app:strokeWidth="1dp"

@@ -3,14 +3,10 @@ package com.almogbb.crimpi.fragments;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
-import android.text.InputType; // Needed for numberDecimal
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast; // Using Toast for simple feedback
 
 import androidx.annotation.NonNull;
@@ -24,7 +20,6 @@ import com.almogbb.crimpi.workouts.Exercise;
 import com.almogbb.crimpi.workouts.WorkoutSet;
 import com.google.android.material.floatingactionbutton.FloatingActionButton; // New import for FAB
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.Arrays; // For creating single WorkoutSet
@@ -35,6 +30,9 @@ public class AddWorkoutDialogFragment extends DialogFragment {
 
     private TextInputEditText editTextWorkoutName;
     private TextInputEditText editTextWorkoutDescription;
+
+    private TextInputEditText editTextRestBetweenRepetitions;
+    private TextInputEditText editTextRestBetweenSets;
     private LinearLayout layoutExercisesContainerMain; // Main container for all exercise lines
     private FloatingActionButton fabAddExerciseMain; // The new mini plus FAB
     private Button buttonAdd; // The "Add" button at the bottom
@@ -71,6 +69,8 @@ public class AddWorkoutDialogFragment extends DialogFragment {
         // Initialize views
         editTextWorkoutName = view.findViewById(R.id.edit_text_workout_name);
         editTextWorkoutDescription = view.findViewById(R.id.edit_text_workout_description);
+        editTextRestBetweenRepetitions = view.findViewById(R.id.edit_text_rest_between_repetitions);
+        editTextRestBetweenSets = view.findViewById(R.id.edit_text_rest_between_sets);
         layoutExercisesContainerMain = view.findViewById(R.id.layout_exercises_container_main); // New ID
         fabAddExerciseMain = view.findViewById(R.id.fab_add_exercise_main); // New ID
         buttonAdd = view.findViewById(R.id.button_add); // New ID for the main "Add" button
@@ -112,11 +112,21 @@ public class AddWorkoutDialogFragment extends DialogFragment {
     private void saveWorkout() {
         String workoutName = editTextWorkoutName.getText().toString().trim();
         String workoutDescription = editTextWorkoutDescription.getText().toString().trim();
+        String restsBetweenRepetitionsStr = editTextRestBetweenRepetitions.getText().toString().trim();
+        String restsBetweenSetsStr = editTextRestBetweenSets.getText().toString().trim();
+        int restAfterRepetitionsSeconds = Integer.parseInt(restsBetweenRepetitionsStr); // Default value
+        int restAfterSetSeconds = Integer.parseInt(restsBetweenSetsStr); // Default value
 
         if (workoutName.isEmpty()) {
             Toast.makeText(getContext(), "Workout name cannot be empty.", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        if (restsBetweenRepetitionsStr.isEmpty() || restsBetweenSetsStr.isEmpty()){
+            Toast.makeText(getContext(), "Please specify rest time", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
 
         List<Exercise> exercises = new ArrayList<>();
         int totalDurationEstimate = 0; // Simple estimate
@@ -171,7 +181,7 @@ public class AddWorkoutDialogFragment extends DialogFragment {
         // Wrap all exercises into a single WorkoutSet for compatibility with CustomWorkoutData
         // The restAfterSetSeconds for this single set can be a default or user-defined if you add a field for it later.
         // For now, let's use a default rest of 60 seconds after this "super set" of exercises.
-        WorkoutSet singleWorkoutSet = new WorkoutSet(exercises, 60);
+        WorkoutSet singleWorkoutSet = new WorkoutSet(exercises);
 
         // Create the new CustomWorkoutData object
         CustomWorkoutData newWorkout = new CustomWorkoutData(
@@ -180,7 +190,9 @@ public class AddWorkoutDialogFragment extends DialogFragment {
                 workoutDescription,
                 totalDurationEstimate, // Use the estimated duration
                 1, // Only 1 "set" in terms of WorkoutSet objects for this simplified input
-                Arrays.asList(singleWorkoutSet) // Wrap the single set in a list
+                Arrays.asList(singleWorkoutSet), // Wrap the single set in a list
+                restAfterRepetitionsSeconds,
+                restAfterSetSeconds
         );
 
         // Notify the listener (MyWorkoutsFragment) that a new workout has been saved

@@ -70,4 +70,6 @@
     <string name="resttimer">restTimer</string>
     <string name="workout_completed">Workout Completed!</string>
     <string name="workout_started">Workout Started!</string>
+    <string name="rest_between_sets">Rest between sets (seconds)</string>
+    <string name="rest_between_repetitions">Rest between repetitions (seconds)</string>
 </resources>
