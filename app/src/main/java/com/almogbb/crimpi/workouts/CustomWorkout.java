@@ -11,7 +11,6 @@ import java.util.Locale;
 public class CustomWorkout extends Workout {
 
     private final CustomWorkoutData customWorkoutData;
-    private int currentSetIndex;
     private int currentExerciseIndex;
     private int currentRepetitionCount; // NEW: To track current repetition for an exercise
     private long exerciseStartTime; // This now represents the start time of the *current repetition*
@@ -40,7 +39,6 @@ public class CustomWorkout extends Workout {
     public CustomWorkout(CustomWorkoutData customWorkoutData, CustomWorkoutListener listener, Context context) {
         super();
         this.customWorkoutData = customWorkoutData;
-        this.currentSetIndex = 0;
         this.currentExerciseIndex = 0;
         this.currentRepetitionCount = 0; // Initialize repetition count
         this.currentState = WorkoutState.EXERCISE;
@@ -113,10 +111,8 @@ public class CustomWorkout extends Workout {
 
     // In CustomWorkout.java
     private void handleExerciseState(long currentTime) {
-        List<WorkoutSet> sets = customWorkoutData.getWorkoutSets();
-
-        WorkoutSet currentWorkoutSet = sets.get(currentSetIndex);
-        List<Exercise> exercises = currentWorkoutSet.getExercises();
+        WorkoutSet workoutSets = customWorkoutData.getWorkoutSets();
+        List<Exercise> exercises = workoutSets.getExercises();
         if (currentExerciseIndex == exercises.size()) {
             currentState = WorkoutState.COMPLETED;
             return;
@@ -174,7 +170,7 @@ public class CustomWorkout extends Workout {
                 }
             } else {
                 // All repetitions for this exercise are done
-                if (currentSetIndex == sets.size() - 1 && currentExerciseIndex == exercises.size() - 1) {
+                if (currentExerciseIndex == exercises.size() - 1) {
                     // ➤ This was the last exercise of the last set → finish workout
                     currentState = WorkoutState.COMPLETED;
                     if (customWorkoutListener != null) {
@@ -221,14 +217,7 @@ public class CustomWorkout extends Workout {
         }
 
         if (remainingRestTime <= 0) {
-            List<WorkoutSet> sets = customWorkoutData.getWorkoutSets();
-
-            if (currentSetIndex >= sets.size()) {
-                currentState = WorkoutState.COMPLETED;
-                return;
-            }
-
-            WorkoutSet currentWorkoutSet = sets.get(currentSetIndex);
+            WorkoutSet currentWorkoutSet = this.customWorkoutData.getWorkoutSets();
             List<Exercise> exercises = currentWorkoutSet.getExercises();
 
             if (currentExerciseIndex + 1 < exercises.size()) {
@@ -245,40 +234,36 @@ public class CustomWorkout extends Workout {
 
             } else {
                 // ➤ Last exercise in the set is done → move to next set
-                currentSetIndex++;
                 currentExerciseIndex = 0;
                 currentRepetitionCount = 0;
+                currentState = WorkoutState.COMPLETED;
 
-                if (currentSetIndex < sets.size()) {
-                    currentState = WorkoutState.EXERCISE;
-                    exerciseStartTime = currentTime;
-                    updateCurrentExerciseDuration();
-
-                    if (customWorkoutListener != null) {
-                        customWorkoutListener.onRestEnded();
-                    }
-
-                } else {
-                    // ➤ All sets complete
-                    currentState = WorkoutState.COMPLETED;
-                }
+//                if (currentSetIndex < sets.size()) {
+//                    currentState = WorkoutState.EXERCISE;
+//                    exerciseStartTime = currentTime;
+//                    updateCurrentExerciseDuration();
+//
+//                    if (customWorkoutListener != null) {
+//                        customWorkoutListener.onRestEnded();
+//                    }
+//
+//                } else {
+//                    // ➤ All sets complete
+//
+//                }
 
             }
         }
     }
 
     private void updateCurrentExerciseDuration() {
-        if (currentSetIndex < customWorkoutData.getWorkoutSets().size()) {
-            WorkoutSet currentWorkoutSet = customWorkoutData.getWorkoutSets().get(currentSetIndex);
+            WorkoutSet currentWorkoutSet = this.customWorkoutData.getWorkoutSets();
             if (currentExerciseIndex < currentWorkoutSet.getExercises().size()) {
                 //Exercise currentExercise = currentWorkoutSet.getExercises().get(currentExerciseIndex);
                 this.currentExerciseDurationMillis = this.customWorkoutData.getRepetitionDuration() * 1000L;                 //TODO : CUSTOM DURATION
             } else {
                 this.currentExerciseDurationMillis = 0; // No valid exercise, duration is 0
             }
-        } else {
-            this.currentExerciseDurationMillis = 0; // No valid set, duration is 0
         }
-    }
 
 }

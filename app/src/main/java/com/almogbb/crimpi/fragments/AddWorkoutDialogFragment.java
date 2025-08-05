@@ -189,7 +189,7 @@ public class AddWorkoutDialogFragment extends DialogFragment {
                 workoutDescription,
                 repetitionDurationSeconds, // Use the estimated duration
                 1, // Only 1 "set" in terms of WorkoutSet objects for this simplified input
-                Arrays.asList(workoutSets), // Wrap the single set in a list
+                workoutSets, // Wrap the single set in a list
                 restAfterRepetitionsSeconds,
                 restAfterSetSeconds
         );

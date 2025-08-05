@@ -110,12 +110,9 @@ public class MyWorkoutsFragment extends Fragment implements
         List<CustomWorkoutData> dummyWorkouts = new ArrayList<>();
 
         // Workout 1
-        List<WorkoutSet> workoutExample = new ArrayList<>();
-        workoutExample.add(new WorkoutSet(
-                Arrays.asList(
-                        new Exercise("Exercise 1", 3,  0),
-                        new Exercise("Exercise 2", 3, 0)
-                )
+        WorkoutSet workoutExample = new WorkoutSet( Arrays.asList(
+                new Exercise("Exercise 1", 3,  0),
+                new Exercise("Exercise 2", 3, 0)
         ));
         dummyWorkouts.add(new CustomWorkoutData(
                 "example",

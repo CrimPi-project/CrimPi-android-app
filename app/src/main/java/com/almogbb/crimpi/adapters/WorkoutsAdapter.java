@@ -26,6 +26,7 @@ public class WorkoutsAdapter extends RecyclerView.Adapter<WorkoutsAdapter.Workou
     // Interface for click events
     public interface OnItemClickListener {
         void onItemClick(CustomWorkoutData workoutData); // For the entire item click (expand/collapse)
+
         void onGoButtonClick(CustomWorkoutData workoutData); // For the "GO!" button click
     }
 
@@ -65,30 +66,29 @@ public class WorkoutsAdapter extends RecyclerView.Adapter<WorkoutsAdapter.Workou
         holder.exercisesContainerLayout.removeAllViews(); // Clear existing views
         if (isExpanded) {
             // Iterate through each WorkoutSet
-            for (WorkoutSet workoutSet : currentWorkout.getWorkoutSets()) {
-                // Iterate through each Exercise within the WorkoutSet
-                for (Exercise exercise : workoutSet.getExercises()) {
-                    TextView exerciseTextView = new TextView(holder.itemView.getContext());
-                    String exerciseText = exercise.getDescription();
-                    if (exercise.getRepetitions() > 0) {
-                        exerciseText += String.format(" x %d", exercise.getRepetitions());
-                    }
-
-                    exerciseTextView.setText(exerciseText);
-                    exerciseTextView.setTextColor(holder.itemView.getContext().getResources().getColor(android.R.color.white));
-                    exerciseTextView.setTextSize(16); // Match the tools:text size in XML
-                    // Add some margin between exercises if needed
-                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                    );
-                    params.setMargins(0, 4, 0, 0); // Top margin for spacing
-                    exerciseTextView.setLayoutParams(params);
-                    holder.exercisesContainerLayout.addView(exerciseTextView);
+            // Iterate through each Exercise within the WorkoutSet
+            for (Exercise exercise : currentWorkout.getWorkoutSets().getExercises()) {
+                TextView exerciseTextView = new TextView(holder.itemView.getContext());
+                String exerciseText = exercise.getDescription();
+                if (exercise.getRepetitions() > 0) {
+                    exerciseText += String.format(" x %d", exercise.getRepetitions());
                 }
-                // Optionally, add a separator or rest indicator between sets if desired
-                // For now, just adding exercises
+
+                exerciseTextView.setText(exerciseText);
+                exerciseTextView.setTextColor(holder.itemView.getContext().getResources().getColor(android.R.color.white));
+                exerciseTextView.setTextSize(16); // Match the tools:text size in XML
+                // Add some margin between exercises if needed
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                params.setMargins(0, 4, 0, 0); // Top margin for spacing
+                exerciseTextView.setLayoutParams(params);
+                holder.exercisesContainerLayout.addView(exerciseTextView);
             }
+            // Optionally, add a separator or rest indicator between sets if desired
+            // For now, just adding exercises
+
         }
 
         // Set click listener for the entire item to toggle expansion

@@ -57,4 +57,15 @@ public class WorkoutJsonManager {
             return new ArrayList<>(); // Return empty list on error
         }
     }
+
+//    public void clearWorkouts() {
+//        File file = new File(context.getFilesDir(), FILE_NAME);
+//        if (file.exists()) {
+//            if (file.delete()) {
+//                System.out.println("Workouts file deleted.");
+//            } else {
+//                System.err.println("Failed to delete workouts file.");
+//            }
+//        }
+//    }
 }

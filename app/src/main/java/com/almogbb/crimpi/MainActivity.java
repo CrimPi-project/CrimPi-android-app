@@ -10,6 +10,7 @@ import com.almogbb.crimpi.workouts.CustomWorkoutData;
 import com.google.android.material.navigation.NavigationView; // NEW
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog; // Import for AlertDialog
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -425,6 +426,7 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
     }
 
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -458,14 +460,17 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
             // Handle navigation view item clicks here.
             int id = item.getItemId();
 
-            if (id == R.id.nav_home) {
-                loadFragment(homeFragment);
-            } else if (id == R.id.nav_freestyle_workout) {
-                loadFragment(freestyleWorkoutFragment);
-            } else if (id == R.id.nav_my_workouts) {
-                loadFragment(myWorkoutsFragment);
+            switch (id) {
+                case R.id.nav_home:
+                    loadFragment(homeFragment);
+                    break;
+                case R.id.nav_freestyle_workout:
+                    loadFragment(freestyleWorkoutFragment);
+                    break;
+                case R.id.nav_my_workouts:
+                    loadFragment(myWorkoutsFragment);
+                    break;
             }
-
             drawerLayout.closeDrawer(navigationView); // Close the drawer after item selection
             return true;
         });
@@ -485,6 +490,25 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
             Log.e(TAG, "Navigation header view is null.");
         }
 
+        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+            FragmentManager fm = getSupportFragmentManager();
+            List<Fragment> fragments = fm.getFragments();
+
+            for (int i = fragments.size() - 1; i >= 0; i--) {
+                Fragment f = fragments.get(i);
+                if (f != null && f.isVisible()) {
+                    activeFragment = f;
+                    updateNavigationDrawerSelection(f);
+                    break;
+                }
+            }
+        });
+//        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+//            Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+//            if (current != null) {
+//                updateNavigationDrawerSelection(current);
+//            }
+//        });
         // Initialize main screen UI elements (bluetoothButton remains)
         bluetoothButton = findViewById(R.id.bluetoothButton);
 
@@ -609,74 +633,98 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
         });
     }
 
-    // Helper method to load fragments
-    public void loadFragment(Fragment fragment) { // Changed to public
+    public void loadFragment(Fragment fragment) {
         FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction transaction = fm.beginTransaction();
 
-        // Ensure we have the latest instance of the fragment if it already exists
-        if (fragment instanceof FreestyleWorkoutFragment) {
-            Fragment existing = fm.findFragmentByTag("FreestyleFragmentTag");
-            if (existing != null) {
-                fragment = existing;
-                freestyleWorkoutFragment = (FreestyleWorkoutFragment) existing;
-            }
-        } else if (fragment instanceof HomeFragment) {
-            Fragment existing = fm.findFragmentByTag("HomeFragmentTag");
-            if (existing != null) {
-                fragment = existing;
-                homeFragment = (HomeFragment) existing;
-            }
+        String tag;
+        int menuItemId;
+
+        if (fragment instanceof HomeFragment) {
+            tag = "HomeFragmentTag";
+            menuItemId = R.id.nav_home;
+        } else if (fragment instanceof FreestyleWorkoutFragment) {
+            tag = "FreestyleFragmentTag";
+            menuItemId = R.id.nav_freestyle_workout;
         } else if (fragment instanceof MyWorkoutsFragment) {
-            Fragment existing = fm.findFragmentByTag("MyWorkoutsFragmentTag");
-            if (existing != null) {
-                fragment = existing;
-                myWorkoutsFragment = (MyWorkoutsFragment) existing;
-            }
-        } else if (fragment instanceof CustomWorkoutFragment) { // NEW: Handle CustomWorkoutFragment
-            // For CustomWorkoutFragment, we always create a new instance via newInstance(workoutData)
-            // so we don't need to find an existing one here. The 'fragment' parameter
-            // passed to loadFragment will already be the new instance.
-            customWorkoutFragment = (CustomWorkoutFragment) fragment; // Assign to class field for tracking
+            tag = "MyWorkoutsFragmentTag";
+            menuItemId = R.id.nav_my_workouts;
+        } else if (fragment instanceof CustomWorkoutFragment) {
+            tag = "CustomWorkoutFragmentTag";
+            menuItemId = -1; // No nav item
+        } else {
+            tag = fragment.getClass().getSimpleName();
+            menuItemId = -1;
         }
 
+        // Check if fragment is already added
+        Fragment existing = fm.findFragmentByTag(tag);
+        if (existing != null) {
+            fragment = existing;
+        }
 
-        if (fragment != null && activeFragment != fragment) {
-            FragmentTransaction transaction = fm.beginTransaction();
+        // Avoid crashing by removing current fragment if it's not the same
+        if (activeFragment != null && activeFragment != fragment && activeFragment.isAdded()) {
+            transaction.hide(activeFragment);
+        }
 
-            String tag;
-            int menuItemId;
+        if (!fragment.isAdded()) {
+            transaction.add(R.id.fragment_container, fragment, tag);
+        } else {
+            transaction.show(fragment);
+        }
 
-            if (fragment instanceof HomeFragment) {
-                tag = "HomeFragmentTag";
-                menuItemId = R.id.nav_home;
-            } else if (fragment instanceof FreestyleWorkoutFragment) {
-                tag = "FreestyleFragmentTag";
-                menuItemId = R.id.nav_freestyle_workout;
-            } else if (fragment instanceof MyWorkoutsFragment) {
-                tag = "MyWorkoutsFragmentTag";
-                menuItemId = R.id.nav_my_workouts;
-            } else { // This will now correctly handle CustomWorkoutFragment
-                tag = "CustomWorkoutFragmentTag";
-                menuItemId = -1; // No direct menu item for CustomWorkoutFragment
+        // Only add to backstack if it's not HomeFragment
+        transaction.addToBackStack(tag);
+
+        transaction.commit();
+        activeFragment = fragment;
+
+        // Update navigation drawer selection
+        if (navigationView != null && menuItemId != -1) {
+            navigationView.setCheckedItem(menuItemId);
+        }
+
+        // Reset workout state for Freestyle
+        if (fragment instanceof FreestyleWorkoutFragment) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (activeFragment != null && activeFragment.isAdded()) {
+                    ((FreestyleWorkoutFragment) activeFragment).resetWorkoutState();
+                }
+            });
+        }
+    }
+
+    private void updateNavigationDrawerSelection(Fragment fragment) {
+        if (navigationView == null) return;
+
+        int checkedItemId = -1;
+
+        if (fragment instanceof HomeFragment) {
+            checkedItemId = R.id.nav_home;
+        } else if (fragment instanceof FreestyleWorkoutFragment) {
+            checkedItemId = R.id.nav_freestyle_workout;
+        } else if (fragment instanceof MyWorkoutsFragment) {
+            checkedItemId = R.id.nav_my_workouts;
+        }
+
+        if (checkedItemId != -1) {
+            navigationView.setCheckedItem(checkedItemId);
+        } else {
+            navigationView.getMenu().setGroupCheckable(0, true, false);
+            for (int i = 0; i < navigationView.getMenu().size(); i++) {
+                navigationView.getMenu().getItem(i).setChecked(false);
             }
+            navigationView.getMenu().setGroupCheckable(0, true, true);
+        }
+    }
 
-            transaction.replace(R.id.fragment_container, fragment, tag);
-            transaction.commit();
+    @Override
+    public void onBackPressed() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
 
-            activeFragment = fragment;
-            if (navigationView != null && menuItemId != -1) {
-                navigationView.setCheckedItem(menuItemId);
-            }
-
-            // Reset workout state for Freestyle when navigating away from it
-            if (fragment instanceof FreestyleWorkoutFragment) {
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    if (activeFragment != null && activeFragment.isAdded()) {
-                        ((FreestyleWorkoutFragment) activeFragment).resetWorkoutState();
-                    }
-                });
-            }
-            // No reset needed for CustomWorkoutFragment on load, as it starts automatically
+        if (fragmentManager.getBackStackEntryCount() > 0) {
+            fragmentManager.popBackStack(); // Go to the previous fragment
         }
     }
 
