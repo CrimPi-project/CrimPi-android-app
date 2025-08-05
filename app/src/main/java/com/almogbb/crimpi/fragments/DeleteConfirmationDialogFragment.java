@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -56,7 +55,7 @@ public class DeleteConfirmationDialogFragment extends DialogFragment {
                 listener = (DeleteDialogListener) context;
             }
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement DeleteDialogListener");
+            throw new ClassCastException(context + " must implement DeleteDialogListener");
         }
     }
 

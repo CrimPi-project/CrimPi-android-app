@@ -32,10 +32,9 @@ public class AddWorkoutDialogFragment extends DialogFragment {
     private TextInputEditText editTextWorkoutDescription;
 
     private TextInputEditText editTextRestBetweenRepetitions;
+    private TextInputEditText editTextRepetitionDuration;
     private TextInputEditText editTextRestBetweenSets;
     private LinearLayout layoutExercisesContainerMain; // Main container for all exercise lines
-    private FloatingActionButton fabAddExerciseMain; // The new mini plus FAB
-    private Button buttonAdd; // The "Add" button at the bottom
 
     // Listener to communicate back to MyWorkoutsFragment
     public interface AddWorkoutDialogListener {
@@ -54,7 +53,7 @@ public class AddWorkoutDialogFragment extends DialogFragment {
                 listener = (AddWorkoutDialogListener) context; // Fallback to context if not set as target
             }
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement AddWorkoutDialogListener");
+            throw new ClassCastException(context + " must implement AddWorkoutDialogListener");
         }
     }
 
@@ -71,22 +70,19 @@ public class AddWorkoutDialogFragment extends DialogFragment {
         editTextWorkoutDescription = view.findViewById(R.id.edit_text_workout_description);
         editTextRestBetweenRepetitions = view.findViewById(R.id.edit_text_rest_between_repetitions);
         editTextRestBetweenSets = view.findViewById(R.id.edit_text_rest_between_sets);
+        editTextRepetitionDuration = view.findViewById(R.id.edit_text_repetition_duration);
         layoutExercisesContainerMain = view.findViewById(R.id.layout_exercises_container_main); // New ID
-        fabAddExerciseMain = view.findViewById(R.id.fab_add_exercise_main); // New ID
-        buttonAdd = view.findViewById(R.id.button_add); // New ID for the main "Add" button
+        // The new mini plus FAB
+        FloatingActionButton fabAddExerciseMain = view.findViewById(R.id.fab_add_exercise_main); // New ID
+        // The "Add" button at the bottom
+        Button buttonAdd = view.findViewById(R.id.button_add); // New ID for the main "Add" button
 
         // Set up listeners
         fabAddExerciseMain.setOnClickListener(v -> addExerciseView(layoutExercisesContainerMain)); // Add exercise directly
         buttonAdd.setOnClickListener(v -> saveWorkout()); // Save workout on "Add" button click
 
         // Add an initial empty exercise line when the dialog opens
-        if (savedInstanceState == null) {
-            addExerciseView(layoutExercisesContainerMain);
-        } else {
-            // For simplicity, re-add one exercise line on restore.
-            // A robust solution would involve saving/restoring the exact number of exercises.
-            addExerciseView(layoutExercisesContainerMain);
-        }
+        addExerciseView(layoutExercisesContainerMain);
 
         return builder.create();
     }
@@ -114,8 +110,11 @@ public class AddWorkoutDialogFragment extends DialogFragment {
         String workoutDescription = editTextWorkoutDescription.getText().toString().trim();
         String restsBetweenRepetitionsStr = editTextRestBetweenRepetitions.getText().toString().trim();
         String restsBetweenSetsStr = editTextRestBetweenSets.getText().toString().trim();
+        String repetitionDurationStr = editTextRepetitionDuration.getText().toString().trim();
+
         int restAfterRepetitionsSeconds = Integer.parseInt(restsBetweenRepetitionsStr); // Default value
         int restAfterSetSeconds = Integer.parseInt(restsBetweenSetsStr); // Default value
+        int repetitionDurationSeconds = Integer.parseInt(repetitionDurationStr); // Default value
 
         if (workoutName.isEmpty()) {
             Toast.makeText(getContext(), "Workout name cannot be empty.", Toast.LENGTH_SHORT).show();
@@ -127,11 +126,13 @@ public class AddWorkoutDialogFragment extends DialogFragment {
             return;
         }
 
+        if (repetitionDurationStr.isEmpty()){
+            Toast.makeText(getContext(), "Please specify repetition duration", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
 
         List<Exercise> exercises = new ArrayList<>();
-        int totalDurationEstimate = 0; // Simple estimate
-        int totalRepsEstimate = 0;
-
         // Iterate through each dynamically added exercise view
         for (int i = 0; i < layoutExercisesContainerMain.getChildCount(); i++) {
             View exerciseView = layoutExercisesContainerMain.getChildAt(i);
@@ -169,8 +170,6 @@ public class AddWorkoutDialogFragment extends DialogFragment {
             }
 
             exercises.add(new Exercise(exerciseDescription, repetitions, minBodyPercentage)); // DurationSeconds set to 0 as per new design
-            totalDurationEstimate += (repetitions * 10); // Simple estimate: 10 seconds per rep
-            totalRepsEstimate += repetitions;
         }
 
         if (exercises.isEmpty()) {
@@ -181,16 +180,16 @@ public class AddWorkoutDialogFragment extends DialogFragment {
         // Wrap all exercises into a single WorkoutSet for compatibility with CustomWorkoutData
         // The restAfterSetSeconds for this single set can be a default or user-defined if you add a field for it later.
         // For now, let's use a default rest of 60 seconds after this "super set" of exercises.
-        WorkoutSet singleWorkoutSet = new WorkoutSet(exercises);
+        WorkoutSet workoutSets = new WorkoutSet(exercises);
 
         // Create the new CustomWorkoutData object
         CustomWorkoutData newWorkout = new CustomWorkoutData(
                 UUID.randomUUID().toString(), // Generate a unique ID
                 workoutName,
                 workoutDescription,
-                totalDurationEstimate, // Use the estimated duration
+                repetitionDurationSeconds, // Use the estimated duration
                 1, // Only 1 "set" in terms of WorkoutSet objects for this simplified input
-                Arrays.asList(singleWorkoutSet), // Wrap the single set in a list
+                Arrays.asList(workoutSets), // Wrap the single set in a list
                 restAfterRepetitionsSeconds,
                 restAfterSetSeconds
         );

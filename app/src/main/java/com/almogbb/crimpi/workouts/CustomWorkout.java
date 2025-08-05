@@ -10,7 +10,7 @@ import java.util.Locale;
 
 public class CustomWorkout extends Workout {
 
-    private CustomWorkoutData customWorkoutData;
+    private final CustomWorkoutData customWorkoutData;
     private int currentSetIndex;
     private int currentExerciseIndex;
     private int currentRepetitionCount; // NEW: To track current repetition for an exercise
@@ -22,11 +22,11 @@ public class CustomWorkout extends Workout {
 
 
     private long currentExerciseDurationMillis; // Duration for the current repetition of an exercise
-    private long restBetweenRepetitionsMillis;  // Rest after each repetition within a set
-    private long restAfterSetMillis;
+    private final long restBetweenRepetitionsMillis;  // Rest after each repetition within a set
+    private final long restAfterSetMillis;
 
     private Runnable runnable;
-    private UserDataManager userDataManager;
+    private final UserDataManager userDataManager;
 
     private enum WorkoutState {
         EXERCISE,
@@ -130,10 +130,6 @@ public class CustomWorkout extends Workout {
             restStartTime = currentTime;
             if (customWorkoutListener != null) {
                 customWorkoutListener.onRestStarted(restAfterSetMillis); // Use instance variable
-                customWorkoutListener.onCurrentWorkoutProgress(
-                        String.format(Locale.getDefault(),"Set %d/%d - Rest after set", currentSetIndex + 1, sets.size()),
-                        "Next Set"
-                );
             }
             return;
         }
@@ -141,7 +137,7 @@ public class CustomWorkout extends Workout {
         Exercise currentExercise = exercises.get(currentExerciseIndex);
 
         // NEW: Dynamically set the duration for the current repetition
-        currentExerciseDurationMillis = 10 * 1000L; //TODO: ADD CUSTOM DURATION
+        currentExerciseDurationMillis = this.customWorkoutData.getRepetitionDuration() * 1000L;
 
         if (customWorkoutListener != null) {
             String exerciseInfo = String.format(Locale.getDefault(), "%s - Rep %d/%d",
@@ -191,10 +187,6 @@ public class CustomWorkout extends Workout {
 
                     if (customWorkoutListener != null) {
                         customWorkoutListener.onRestStarted(restAfterSetMillis);
-                        customWorkoutListener.onCurrentWorkoutProgress(
-                                String.format(Locale.getDefault(), "Set %d/%d - Rest after exercise", currentSetIndex + 1, sets.size()),
-                                "Next Exercise"
-                        );
                     }
                 }
             }
@@ -275,14 +267,12 @@ public class CustomWorkout extends Workout {
         }
     }
 
-
-    // In CustomWorkout.java, add this new private helper method
     private void updateCurrentExerciseDuration() {
         if (currentSetIndex < customWorkoutData.getWorkoutSets().size()) {
             WorkoutSet currentWorkoutSet = customWorkoutData.getWorkoutSets().get(currentSetIndex);
             if (currentExerciseIndex < currentWorkoutSet.getExercises().size()) {
-                Exercise currentExercise = currentWorkoutSet.getExercises().get(currentExerciseIndex);
-                this.currentExerciseDurationMillis = 10 * 1000L;                 //TODO : CUSTOM DURATION
+                //Exercise currentExercise = currentWorkoutSet.getExercises().get(currentExerciseIndex);
+                this.currentExerciseDurationMillis = this.customWorkoutData.getRepetitionDuration() * 1000L;                 //TODO : CUSTOM DURATION
             } else {
                 this.currentExerciseDurationMillis = 0; // No valid exercise, duration is 0
             }
@@ -291,58 +281,4 @@ public class CustomWorkout extends Workout {
         }
     }
 
-    private void updateMinBodyPercentageForCurrentExercise() {
-        if (customWorkoutListener != null) {
-            if (currentSetIndex < customWorkoutData.getWorkoutSets().size() &&
-                    currentExerciseIndex < customWorkoutData.getWorkoutSets().get(currentSetIndex).getExercises().size()) {
-                Exercise nextExercise = customWorkoutData.getWorkoutSets().get(currentSetIndex).getExercises().get(currentExerciseIndex);
-
-            }
-        }
-    }
-
-    public String getCurrentWorkoutStatus() {
-        List<WorkoutSet> sets = customWorkoutData.getWorkoutSets();
-        if (currentSetIndex >= sets.size()) {
-            return "Workout Completed";
-        }
-
-        WorkoutSet currentWorkoutSet = sets.get(currentSetIndex);
-        List<Exercise> exercises = currentWorkoutSet.getExercises();
-
-        String status = "";
-        switch (currentState) {
-            case EXERCISE:
-                if (currentExerciseIndex < exercises.size()) {
-                    Exercise currentExercise = exercises.get(currentExerciseIndex);
-                    status = String.format(Locale.getDefault(), "Set %d/%d - %s x %d (Rep %d/%d)",
-                            currentSetIndex + 1, sets.size(),
-                            currentExercise.getDescription(),
-                            currentExercise.getRepetitions(),
-                            currentRepetitionCount + 1,
-                            currentExercise.getRepetitions());
-                    if (currentExercise.getMinBodyPercentage() > 0) {
-                        status += String.format(" (Min Body: %d%%)", currentExercise.getMinBodyPercentage());
-                    }
-                }
-                break;
-            case REST_BETWEEN_REPETITIONS:
-                if (currentSetIndex < sets.size() && currentExerciseIndex < exercises.size()) {
-                    Exercise currentExercise = exercises.get(currentExerciseIndex); // Use currentExercise
-                    status = String.format("Set %d/%d - Rest (Repetition) - Next Rep: %d/%d of %s",
-                            currentSetIndex + 1, sets.size(),
-                            currentRepetitionCount + 2, currentExercise.getRepetitions(), currentExercise.getDescription());
-                } else {
-                    status = String.format("Set %d/%d - Rest (Repetition)", currentSetIndex + 1, sets.size());
-                }
-                break;
-            case REST_AFTER_SET:
-                status = String.format("Set %d/%d - Rest (Set)", currentSetIndex + 1, sets.size());
-                break;
-            case COMPLETED:
-                status = "Workout Completed";
-                break;
-        }
-        return status;
-    }
 }

@@ -109,7 +109,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
             customWorkout.start(); // Automatically start the workout when the fragment is created
         } else {
             // Handle case where workoutData is null (e.g., show an error message)
-            primaryStatusTextView.setText("Error: No workout data loaded.");
+            primaryStatusTextView.setText(R.string.error_no_workout_data_loaded);
             Log.e(TAG, "Workout data is null in CustomWorkoutFragment.");
         }
 

@@ -9,7 +9,7 @@ public class CustomWorkoutData implements Serializable { // ADDED: implements Se
     private String id; // Unique ID for the workout
     private String name;
     private String description;
-    private int totalDurationSeconds; // Calculated total duration for display
+    private int repetitionDuration; // Calculated total duration for display
     private int totalSets;
 
     private final int restBetweenRepetitions;
@@ -18,12 +18,12 @@ public class CustomWorkoutData implements Serializable { // ADDED: implements Se
     private List<WorkoutSet> workoutSets;
 
     public CustomWorkoutData(String id, String name, String description,
-                             int totalDurationSeconds, int totalSets,
+                             int repetitionDuration, int totalSets,
                              List<WorkoutSet> workoutSets,int restBetweenRepetitions,int restBetweenSets) {
         this.id = id;
         this.name = name;
         this.description = description;
-        this.totalDurationSeconds = totalDurationSeconds;
+        this.repetitionDuration = repetitionDuration;
         this.totalSets = totalSets;
         this.workoutSets = workoutSets;
         this.restBetweenRepetitions = restBetweenRepetitions;
@@ -43,8 +43,8 @@ public class CustomWorkoutData implements Serializable { // ADDED: implements Se
         return description;
     }
 
-    public int getTotalDurationSeconds() {
-        return totalDurationSeconds;
+    public int getRepetitionDuration() {
+        return repetitionDuration;
     }
 
     public int getTotalSets() {
@@ -68,8 +68,8 @@ public class CustomWorkoutData implements Serializable { // ADDED: implements Se
         this.description = description;
     }
 
-    public void setTotalDurationSeconds(int totalDurationSeconds) {
-        this.totalDurationSeconds = totalDurationSeconds;
+    public void setRepetitionDuration(int repetitionDuration) {
+        this.repetitionDuration = repetitionDuration;
     }
 
     public void setTotalSets(int totalSets) {

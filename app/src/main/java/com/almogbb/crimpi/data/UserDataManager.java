@@ -4,20 +4,15 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.google.gson.Gson;
-
 public class UserDataManager {
 
     private static final String TAG = "UserDataManager";
     private static final String PREFS_NAME = "CrimpiUserPrefs";
     private static final String KEY_BODY_WEIGHT = "bodyWeight";
-    private final Context appContext; // Use application context to prevent leaks
-    private final Gson gson;
-
+    private final Context appContext; // Use application context to prevent lea
     public UserDataManager(Context context) {
         // Store the application context to avoid memory leaks
         this.appContext = context.getApplicationContext();
-        this.gson = new Gson();
     }
 
     public void saveBodyWeight(float weight) {

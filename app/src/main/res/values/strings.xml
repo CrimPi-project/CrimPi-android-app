@@ -72,4 +72,6 @@
     <string name="workout_started">Workout Started!</string>
     <string name="rest_between_sets">Rest between sets (seconds)</string>
     <string name="rest_between_repetitions">Rest between repetitions (seconds)</string>
+    <string name="error_no_workout_data_loaded">Error: No workout data loaded.</string>
+    <string name="repetition_duration">Repetition duration</string>
 </resources>

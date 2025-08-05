@@ -67,7 +67,7 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements BodyWeightDialogFragment.BodyWeightDialogListener {
 
-    private static final String TAG = "CrimPiBLEApp";
+    private static final String TAG = "CrimPiApp";
 
     private static final int REQUEST_BLUETOOTH_PERMISSIONS = 1;
 

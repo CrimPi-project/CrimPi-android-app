@@ -219,10 +219,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
     @Override
     public void onWorkoutProgressUpdated(long elapsedTimeSeconds) {
         if (!isAdded()) return; // Defensive check
-        requireActivity().runOnUiThread(() -> {
-            long seconds = elapsedTimeSeconds % 60;
-            timerTextView.setText(String.format(Locale.getDefault(), "%d", elapsedTimeSeconds));
-        });
+        requireActivity().runOnUiThread(() -> timerTextView.setText(String.format(Locale.getDefault(), "%d", elapsedTimeSeconds)));
     }
 
     public void resetWorkoutState() {
