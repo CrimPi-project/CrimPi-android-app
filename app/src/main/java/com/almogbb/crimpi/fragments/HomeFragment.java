@@ -72,21 +72,45 @@ public class HomeFragment extends Fragment {
 
         // If you want to check for an existing GATT connection, you need a reference to the device.
         // For example, if MainActivity holds `bluetoothGatt`, you can ask it:
-        if (getActivity() instanceof MainActivity) {
-            MainActivity main = (MainActivity) getActivity();
-            if (main.bluetoothGatt != null &&
-                    ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+//        if (getActivity() instanceof MainActivity) {
+//            MainActivity main = (MainActivity) getActivity();
+//            if (main.bluetoothGatt != null &&
+//                    ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+//
+//                int state = bluetoothManager.getConnectionState(main.bluetoothGatt.getDevice(), BluetoothProfile.GATT);
+//                if (state == BluetoothProfile.STATE_CONNECTED) {
+//                    showConnectedStateUI();
+//                } else {
+//                    showDisconnectedStateUI();
+//                }
+//            } else {
+//                showDisconnectedStateUI();
+//            }
+//        }
+    }
 
-                int state = bluetoothManager.getConnectionState(main.bluetoothGatt.getDevice(), BluetoothProfile.GATT);
-                if (state == BluetoothProfile.STATE_CONNECTED) {
-                    showConnectedStateUI();
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden){
+            BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
+            if (getActivity() instanceof MainActivity) {
+                MainActivity main = (MainActivity) getActivity();
+                if (main.bluetoothGatt != null &&
+                        ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+
+                    int state = bluetoothManager.getConnectionState(main.bluetoothGatt.getDevice(), BluetoothProfile.GATT);
+                    if (state == BluetoothProfile.STATE_CONNECTED) {
+                        showConnectedStateUI();
+                    } else {
+                        showDisconnectedStateUI();
+                    }
                 } else {
                     showDisconnectedStateUI();
                 }
-            } else {
-                showDisconnectedStateUI();
             }
         }
+
     }
 
     // Public method to allow MainActivity to update instruction text

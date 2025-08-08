@@ -24,6 +24,7 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
@@ -76,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
     private BluetoothLeScanner bluetoothLeScanner;
     public BluetoothGatt bluetoothGatt;
 
+    public BluetoothGattCharacteristic uartRxCharacteristic;
+    public BluetoothGattCharacteristic uartTxCharacteristic;
     // NEW: Navigation Drawer elements
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -106,8 +109,11 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
     private final Map<String, BluetoothDevice> discoveredDevicesMap = new HashMap<>(); // MAC Address to BluetoothDevice
 
     // --- UUIDs (MUST MATCH Pico W's main.py) ---
-    private static final UUID ENV_SENSE_SERVICE_UUID = UUID.fromString("0000181A-0000-1000-8000-00805F9B34FB");
-    private static final UUID TEMPERATURE_CHARACTERISTIC_UUID = UUID.fromString("00002A6E-0000-1000-8000-00805F9B34FB");
+
+    private static final UUID UART_SERVICE_UUID = UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
+    private static final UUID UART_TX_CHAR_UUID = UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E"); // Pico → Android
+    private static final UUID UART_RX_CHAR_UUID = UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA9E"); // Android → Pico
+    //private static final UUID ENV_SENSE_SERVICE_UUID = UUID.fromString("0000181A-0000-1000-8000-00805F9B34FB");
     private static final UUID CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805F9B34FB");
 
     private static final String HOME_FRAGMENT_TAG = "HomeFragmentTag";
@@ -121,6 +127,38 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
         Toast.makeText(this, getString(R.string.body_weight_saved), Toast.LENGTH_SHORT).show();
     }
 
+    public boolean sendCommandToPico(String command) {
+        if (bluetoothGatt == null || uartRxCharacteristic == null || command == null) {
+            Log.w(TAG, "Cannot send command. GATT or RX Characteristic is null.");
+            Log.d("I AM FALSE", "1");
+            return false;
+        }
+
+        uartRxCharacteristic.setValue(command.getBytes());
+
+        try {
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                Log.w(TAG, "Missing BLUETOOTH_CONNECT permission. Cannot send command.");
+                Log.d("I AM FALSE", "2");
+                return false;
+            }
+
+            boolean success = bluetoothGatt.writeCharacteristic(uartRxCharacteristic);
+            if (success) {
+                Log.i(TAG, "Sent command: " + command);
+            } else {
+                Log.d("I AM FALSE", "3");
+                Log.e(TAG, "Failed to send command: " + command);
+            }
+            return success;
+
+        } catch (SecurityException e) {
+            Log.d("I AM FALSE", "4");
+            Log.e(TAG, "SecurityException while sending command to Pico: " + e.getMessage());
+            return false;
+        }
+    }
+
     @Override
     public void onBodyWeightCanceled() {
         Log.d(TAG, "Body weight dialog canceled.");
@@ -132,6 +170,7 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
+
             processScanResult(result);
         }
 
@@ -208,28 +247,35 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.i(TAG, "Services discovered.");
-                BluetoothGattService envSenseService = gatt.getService(ENV_SENSE_SERVICE_UUID);
-                if (envSenseService != null) {
-                    BluetoothGattCharacteristic tempCharacteristic = envSenseService.getCharacteristic(TEMPERATURE_CHARACTERISTIC_UUID);
-                    if (tempCharacteristic != null) {
+                BluetoothGattService uartService = gatt.getService(UART_SERVICE_UUID);
+                if (uartService != null) {
+                    BluetoothGattCharacteristic txChar = uartService.getCharacteristic(UART_TX_CHAR_UUID); // for notifications
+                    BluetoothGattCharacteristic rxChar = uartService.getCharacteristic(UART_RX_CHAR_UUID); // for writing
+
+                    if (rxChar != null) {
+                        uartRxCharacteristic = rxChar;
+
+                    } else {
+                        Log.w(TAG, "UART RX Characteristic not found.");
+                    }
+                    if (txChar != null) {
+                        uartTxCharacteristic = txChar;
                         if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                            Log.e(TAG, "BLUETOOTH_CONNECT permission not granted for setCharacteristicNotification.");
                             return;
                         }
-                        gatt.setCharacteristicNotification(tempCharacteristic, true);
-                        BluetoothGattDescriptor descriptor = tempCharacteristic.getDescriptor(CCCD_UUID);
+                        gatt.setCharacteristicNotification(txChar, true);
+                        BluetoothGattDescriptor descriptor = txChar.getDescriptor(CCCD_UUID);
                         if (descriptor != null) {
                             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                            boolean writeSuccess = gatt.writeDescriptor(descriptor);
-                            Log.d(TAG, "Subscribed to Temperature Characteristic notifications: " + writeSuccess);
+                            gatt.writeDescriptor(descriptor);
                         } else {
-                            Log.w(TAG, "CCCD descriptor not found for Temperature Characteristic.");
+                            Log.w(TAG, "CCCD (0x2902) descriptor not found on TX characteristic.");
                         }
                     } else {
-                        Log.w(TAG, "Temperature Characteristic not found: " + TEMPERATURE_CHARACTERISTIC_UUID);
+                        Log.w(TAG, "UART TX Characteristic not found.");
                     }
                 } else {
-                    Log.w(TAG, "Environmental Sensing Service not found: " + ENV_SENSE_SERVICE_UUID);
+                    Log.w(TAG, "UART Service not found.");
                 }
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
@@ -239,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             // This is called when the Pico W sends a notification (e.g., new temperature)
-            if (characteristic.getUuid().equals(TEMPERATURE_CHARACTERISTIC_UUID)) {
+            if (characteristic.getUuid().equals(UART_TX_CHAR_UUID)) {
                 byte[] value = characteristic.getValue();
                 if (value != null && value.length >= 2) {
                     int rawTemp = ByteBuffer.wrap(value).order(ByteOrder.LITTLE_ENDIAN).getShort();
@@ -633,6 +679,7 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
         });
     }
 
+
     public void loadFragment(Fragment fragment) {
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction transaction = fm.beginTransaction();
@@ -875,12 +922,12 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
 
         // --- Scan Filters and Settings ---
         List<ScanFilter> scanFilters = new ArrayList<>();
-        ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(ENV_SENSE_SERVICE_UUID)).build();
+        ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(UART_SERVICE_UUID)).build();
         scanFilters.add(filter);
 
         ScanSettings scanSettings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
 
-        bluetoothLeScanner.startScan(scanFilters, scanSettings, scanCallback);
+        bluetoothLeScanner.startScan(null, scanSettings, scanCallback); //TODO: CHANGE FILTERS
 
         // Stop scan after a period (e.g., 10 seconds)
         new Handler(Looper.getMainLooper()).postDelayed(() -> {

@@ -15,6 +15,7 @@ public class CustomWorkout extends Workout {
     private int currentRepetitionCount; // NEW: To track current repetition for an exercise
     private long exerciseStartTime; // This now represents the start time of the *current repetition*
     private long restStartTime;
+
     private WorkoutState currentState;
 
     // Fixed durations as per your new requirements
@@ -27,7 +28,8 @@ public class CustomWorkout extends Workout {
     private Runnable runnable;
     private final UserDataManager userDataManager;
 
-    private enum WorkoutState {
+    public  enum WorkoutState {
+        COUNTDOWN_BEFORE_START,
         EXERCISE,
         REST_BETWEEN_REPETITIONS,
         REST_AFTER_SET,
@@ -41,7 +43,7 @@ public class CustomWorkout extends Workout {
         this.customWorkoutData = customWorkoutData;
         this.currentExerciseIndex = 0;
         this.currentRepetitionCount = 0; // Initialize repetition count
-        this.currentState = WorkoutState.EXERCISE;
+        this.currentState = WorkoutState.COUNTDOWN_BEFORE_START;
         super.setListener(listener);
         this.customWorkoutListener = listener;
         this.userDataManager = new UserDataManager(context.getApplicationContext());
@@ -53,13 +55,18 @@ public class CustomWorkout extends Workout {
     public void start() {
         if (!workoutStarted) {
             workoutStarted = true;
-            startTimeMillis = System.currentTimeMillis(); // startTimeMillis is from Workout superclass
+            startTimeMillis = System.currentTimeMillis();
+
+            restStartTime = startTimeMillis;
+
             if (customWorkoutListener != null) {
-                customWorkoutListener.onWorkoutStarted();
+                customWorkoutListener.onRestStarted(4000); // 3 sec countdown
             }
+
             startWorkoutLoop();
         }
     }
+
 
     @Override
     public void stop() {
@@ -74,7 +81,27 @@ public class CustomWorkout extends Workout {
         }
     }
 
-    // In CustomWorkout.java, inside startWorkoutLoop()
+    private void handleCountdownBeforeStartState(long currentTime) {
+        long countdownDuration = 4000L;
+        long elapsed = currentTime - restStartTime;
+        long remaining = countdownDuration - elapsed;
+
+        if (customWorkoutListener != null) {
+            customWorkoutListener.onRestTimerUpdated(remaining);
+        }
+
+        if (remaining <= 0) {
+            currentState = WorkoutState.EXERCISE;
+            exerciseStartTime = currentTime;
+            updateCurrentExerciseDuration();
+
+            if (customWorkoutListener != null) {
+                customWorkoutListener.onRestEnded();
+                customWorkoutListener.onWorkoutStarted(); // Trigger the UI changes AFTER countdown
+            }
+        }
+    }
+
     private void startWorkoutLoop() {
         runnable = new Runnable() {
             @Override
@@ -84,6 +111,9 @@ public class CustomWorkout extends Workout {
                 long currentTime = System.currentTimeMillis();
 
                 switch (currentState) {
+                    case COUNTDOWN_BEFORE_START:
+                        handleCountdownBeforeStartState(currentTime);
+                        break;
                     case EXERCISE:
                         handleExerciseState(currentTime);
                         break;
@@ -238,32 +268,21 @@ public class CustomWorkout extends Workout {
                 currentRepetitionCount = 0;
                 currentState = WorkoutState.COMPLETED;
 
-//                if (currentSetIndex < sets.size()) {
-//                    currentState = WorkoutState.EXERCISE;
-//                    exerciseStartTime = currentTime;
-//                    updateCurrentExerciseDuration();
-//
-//                    if (customWorkoutListener != null) {
-//                        customWorkoutListener.onRestEnded();
-//                    }
-//
-//                } else {
-//                    // ➤ All sets complete
-//
-//                }
-
             }
         }
     }
 
+    public WorkoutState getCurrentState() {
+        return currentState;
+    }
+
     private void updateCurrentExerciseDuration() {
-            WorkoutSet currentWorkoutSet = this.customWorkoutData.getWorkoutSets();
-            if (currentExerciseIndex < currentWorkoutSet.getExercises().size()) {
-                //Exercise currentExercise = currentWorkoutSet.getExercises().get(currentExerciseIndex);
-                this.currentExerciseDurationMillis = this.customWorkoutData.getRepetitionDuration() * 1000L;                 //TODO : CUSTOM DURATION
-            } else {
-                this.currentExerciseDurationMillis = 0; // No valid exercise, duration is 0
-            }
+        WorkoutSet currentWorkoutSet = this.customWorkoutData.getWorkoutSets();
+        if (currentExerciseIndex < currentWorkoutSet.getExercises().size()) {
+            this.currentExerciseDurationMillis = this.customWorkoutData.getRepetitionDuration() * 1000L;
+        } else {
+            this.currentExerciseDurationMillis = 0; // No valid exercise, duration is 0
         }
+    }
 
 }

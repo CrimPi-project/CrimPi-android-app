@@ -37,7 +37,7 @@
     <string name="no_crimpi_devices_found">No CrimPi devices found. Make sure the device is on and discoverable.</string>
     <string name="device_logo">Device Logo</string>
     <string name="crimpi_device_name">CrimPi Device Name</string>
-    <string name="disconnected_from_device">Workout stopped! Disconnected from device.</string>
+    <string name="disconnected_from_device">Disconnected from device.</string>
     <string name="go">GO!</string>
     <string name="enter_current_body_weight">Enter current body weight</string>
     <string name="body_weight_hint">Body weight\n</string>
