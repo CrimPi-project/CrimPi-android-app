@@ -120,16 +120,16 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
         }
 
         // Add click listener to forceBarCustomWorkoutTrack to set target (similar to Freestyle)
-        forceBarCustomWorkoutTrack.setOnClickListener(v -> {
-            try {
-                if (customWorkout != null && customWorkout.isRunning()) {
-                    float currentForce = Float.parseFloat(forceValueTextView.getText().toString());
-                    customWorkout.setTarget(currentForce);
-                }
-            } catch (NumberFormatException e) {
-                Toast.makeText(requireContext(), "Invalid force value for target", Toast.LENGTH_SHORT).show();
-            }
-        });
+//        forceBarCustomWorkoutTrack.setOnClickListener(v -> {
+//            try {
+//                if (customWorkout != null && customWorkout.isRunning()) {
+//                    float currentForce = Float.parseFloat(forceValueTextView.getText().toString());
+//                    customWorkout.setTarget(currentForce);
+//                }
+//            } catch (NumberFormatException e) {
+//                Toast.makeText(requireContext(), "Invalid force value for target", Toast.LENGTH_SHORT).show();
+//            }
+//        });
 
 
         return view;

@@ -95,42 +95,6 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
         // Set initial text for received number
         forceTextView.setText(R.string.n_a);
 
-//        startButton.setOnClickListener(v -> {
-//            BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
-//            if (getActivity() instanceof MainActivity) {
-//                MainActivity main = (MainActivity) getActivity();
-//                if (main.bluetoothGatt != null && bluetoothManager != null &&
-//                        ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-//
-//                    int state = bluetoothManager.getConnectionState(main.bluetoothGatt.getDevice(), BluetoothProfile.GATT);
-//                    if (!workout.isRunning()) {
-//                        if (state == BluetoothProfile.STATE_CONNECTED) {
-//                            boolean sent = main.sendCommandToPico("start");
-//                            if (!sent) {
-//                                Toast.makeText(requireContext(), "Failed to send start command", Toast.LENGTH_SHORT).show();
-//
-//                            } else {
-//                                workout.start();
-//                            }
-//
-//                        } else {
-//                            Toast.makeText(requireContext(), R.string.not_connected_to_a_crimpi_device_please_connect, Toast.LENGTH_SHORT).show();
-//                        }
-//
-//                    } else {
-//                        resetWorkoutState();
-//                        boolean sent = main.sendCommandToPico("stop");
-//                        if (!sent) {
-//                            Toast.makeText(requireContext(), "Failed to send stop command", Toast.LENGTH_SHORT).show();
-//                        }
-//                        workout.stop();
-//                    }
-//                } else {
-//                    Toast.makeText(requireContext(), R.string.not_connected_to_a_crimpi_device_please_connect, Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//        });
-
         startButton.setOnClickListener(v -> {
             BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
             if (getActivity() instanceof MainActivity) {
