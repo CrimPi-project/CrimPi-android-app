@@ -28,7 +28,7 @@
         android:contentDescription="@string/add_workout"
         android:focusable="true"
         android:src="@drawable/ic_add_24"
-        app:backgroundTint="@color/accent_blue_light"
+        app:backgroundTint="@color/dark_blue"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layoutDirection="ltr"
         app:layout_constraintEnd_toEndOf="parent"

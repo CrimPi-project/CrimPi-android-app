@@ -665,6 +665,9 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
 
         // Avoid crashing by removing current fragment if it's not the same
         if (activeFragment != null && activeFragment != fragment && activeFragment.isAdded()) {
+            if (activeFragment instanceof CustomWorkoutFragment) {
+                ((CustomWorkoutFragment) activeFragment).stopWorkout();
+            }
             transaction.hide(activeFragment);
         }
 

@@ -440,6 +440,13 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
         });
     }
 
+    public void stopWorkout() {
+        if (customWorkout != null) {
+            customWorkout.stop();   // stop timers, threads, etc.
+            customWorkout = null;   // prevent reuse of the old workout instance
+        }
+    }
+
     public CustomWorkoutData getWorkoutData() {
         return workoutData;
     }

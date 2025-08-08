@@ -83,7 +83,7 @@
         android:fitsSystemWindows="true"
         android:layoutDirection="ltr"
         app:headerLayout="@layout/nav_header_main"
-        app:itemIconTint="@color/accent_blue_light"
+        app:itemIconTint="@color/primary_text_color"
         app:itemTextColor="@color/primary_text_color"
         app:menu="@menu/activity_main_drawer"
         app:itemBackground="@drawable/nav_item_background_selector"
