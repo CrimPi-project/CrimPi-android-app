@@ -37,7 +37,18 @@
             android:textSize="24sp"
             android:textStyle="bold"
             android:visibility="visible" />
+
+        <ImageButton
+            android:id="@+id/stopCustomWorkoutButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="25dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/primary_text_color"
+            android:contentDescription="@string/stop_workout"
+            android:src="@drawable/outline_cancel_24" />
     </RelativeLayout>
+
 
 
     <!-- RelativeLayout to contain the weight number and the "kg" unit -->
@@ -160,6 +171,7 @@
         app:layout_constraintBottom_toBottomOf="@id/forceBarCustomWorkoutTrack"
         app:layout_constraintEnd_toEndOf="@id/forceBarCustomWorkoutTrack"
         app:layout_constraintStart_toStartOf="@id/forceBarCustomWorkoutTrack" />
+
 
     <!-- Rest Countdown Timer (Centered) -->
     <TextView

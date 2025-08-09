@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
     private HomeFragment homeFragment;
     private FreestyleWorkoutFragment freestyleWorkoutFragment;
 
-    private MyWorkoutsFragment myWorkoutsFragment;
+    public MyWorkoutsFragment myWorkoutsFragment;
 
     private CustomWorkoutFragment customWorkoutFragment;
     // NEW: Variable to keep track of the currently active fragment
@@ -723,10 +723,7 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
         } else {
             transaction.show(fragment);
         }
-
-        // Only add to backstack if it's not HomeFragment
-        transaction.addToBackStack(tag);
-
+        
         transaction.commit();
         activeFragment = fragment;
 
@@ -771,11 +768,6 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
 
     @Override
     public void onBackPressed() {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-
-        if (fragmentManager.getBackStackEntryCount() > 0) {
-            fragmentManager.popBackStack(); // Go to the previous fragment
-        }
     }
 
 

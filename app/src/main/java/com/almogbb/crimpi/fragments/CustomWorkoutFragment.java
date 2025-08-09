@@ -9,12 +9,14 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.util.Log; // For logging, similar to FreestyleWorkoutFragment
 import android.animation.ValueAnimator; // For force bar animation
 import android.widget.Toast; // For Toast messages
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -52,6 +54,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
     private View forceBarCustomWorkoutTrack; // Force bar track view
     private View targetLineCustomWorkout; // Target line view
     private ImageView timerImageView;
+    private ImageButton stopWorkoutButton; // Added to handle stop workout button
 
     private UserDataManager userDataManager; // For body weight
     private static final float MAX_FORCE_VALUE = 100.0f; // Example: 100 kg or 100 N
@@ -91,7 +94,18 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
         forceBarCustomWorkoutTrack = view.findViewById(R.id.forceBarCustomWorkoutTrack); // Initialize forceBarTrack
         targetLineCustomWorkout = view.findViewById(R.id.targetLineCustomWorkout); // Initialize targetLine
         timerImageView = view.findViewById(R.id.timerCustomWorkoutIcon); // Initialize timerImageView
+        stopWorkoutButton = view.findViewById(R.id.stopCustomWorkoutButton); // Initialize stopWorkoutButton
+        stopWorkoutButton.setOnClickListener(v -> {
+            if (customWorkout != null) {
+                customWorkout.stop();
+                if (getActivity() instanceof MainActivity){
+                    MainActivity main = (MainActivity) getActivity();
+                    MyWorkoutsFragment myWorkoutsFragment = main.myWorkoutsFragment;
+                    main.loadFragment(myWorkoutsFragment);
+                }
 
+            }
+        });
 
         // Set initial visibility for all elements (similar to FreestyleWorkoutFragment)
         forceValueTextView.setVisibility(View.GONE);
@@ -103,6 +117,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
         exerciseTimerTextView.setVisibility(View.GONE); // Initially hidden, shown when workout starts
         restTimerTextView.setVisibility(View.GONE); // Initially hidden
         timerImageView.setVisibility(View.GONE);
+        stopWorkoutButton.setVisibility(View.GONE);
 
         // Set initial text for force value
         forceValueTextView.setText(R.string.n_a);
@@ -118,20 +133,6 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
             primaryStatusTextView.setText(R.string.error_no_workout_data_loaded);
             Log.e(TAG, "Workout data is null in CustomWorkoutFragment.");
         }
-
-        // Add click listener to forceBarCustomWorkoutTrack to set target (similar to Freestyle)
-//        forceBarCustomWorkoutTrack.setOnClickListener(v -> {
-//            try {
-//                if (customWorkout != null && customWorkout.isRunning()) {
-//                    float currentForce = Float.parseFloat(forceValueTextView.getText().toString());
-//                    customWorkout.setTarget(currentForce);
-//                }
-//            } catch (NumberFormatException e) {
-//                Toast.makeText(requireContext(), "Invalid force value for target", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-
-
         return view;
     }
 
@@ -183,6 +184,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
             secondaryStatusTextView.setText("");
             timerImageView.setVisibility(View.VISIBLE);
             restTimerTextView.setVisibility(View.GONE); // Ensure rest timer is hidden
+            stopWorkoutButton.setVisibility(View.VISIBLE);
             updateBodyPercentage(0f); // Reset body percentage display
         });
     }
@@ -214,7 +216,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
             bodyPercentageTextView.setVisibility(View.GONE);
             exerciseTimerTextView.setVisibility(View.GONE);
             restTimerTextView.setVisibility(View.GONE);
-
+            stopWorkoutButton.setVisibility(View.VISIBLE);
             primaryStatusTextView.setText(R.string.workout_completed);
             secondaryStatusTextView.setText("");
             forceValueTextView.setText(String.format(Locale.getDefault(), "Force: %.1fkg", 0.0f));
@@ -237,7 +239,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
     }
 
     @Override
-    public void onTargetSet(float targetPercentage) {
+    public void onTargetSet(float targetPercentage) { //TODO: Remove this method
         requireActivity().runOnUiThread(() -> {
             // Update the minBodyPercentageTextView to show the target percentage
             if (bodyPercentageTextView != null) {
@@ -308,6 +310,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
             if (timerImageView != null) timerImageView.setVisibility(View.GONE);
             if (unitKgCustomWorkoutTextView != null)
                 unitKgCustomWorkoutTextView.setVisibility(View.GONE);
+            if (stopWorkoutButton != null) stopWorkoutButton.setVisibility(View.GONE);
 
             onRestTimerUpdated(totalRestDurationMillis);
         });
@@ -385,6 +388,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
             if (timerImageView != null) timerImageView.setVisibility(View.VISIBLE);
             if (unitKgCustomWorkoutTextView != null)
                 unitKgCustomWorkoutTextView.setVisibility(View.VISIBLE);
+            if (stopWorkoutButton != null) stopWorkoutButton.setVisibility(View.VISIBLE);
         });
     }
 
