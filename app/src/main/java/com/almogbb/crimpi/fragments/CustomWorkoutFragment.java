@@ -16,7 +16,6 @@ import android.util.Log; // For logging, similar to FreestyleWorkoutFragment
 import android.animation.ValueAnimator; // For force bar animation
 import android.widget.Toast; // For Toast messages
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -163,6 +162,42 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
 
     // --- CustomWorkoutListener Implementations ---
 
+    public void sendStartCommandToPico(){
+        BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
+        if (getActivity() instanceof MainActivity) {
+            MainActivity main = (MainActivity) getActivity();
+            if (main.bluetoothGatt != null && bluetoothManager != null &&
+                    ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+
+                int state = bluetoothManager.getConnectionState(main.bluetoothGatt.getDevice(), BluetoothProfile.GATT);
+                if (state == BluetoothProfile.STATE_CONNECTED) {
+                    boolean sent = main.sendCommandToPico("start");
+                    if (!sent) {
+                        Toast.makeText(requireContext(), "Failed to send start command", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        }
+    }
+
+    public void sendStopCommandToPico(){
+        BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
+        if (getActivity() instanceof MainActivity) {
+            MainActivity main = (MainActivity) getActivity();
+            if (main.bluetoothGatt != null && bluetoothManager != null &&
+                    ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+
+                int state = bluetoothManager.getConnectionState(main.bluetoothGatt.getDevice(), BluetoothProfile.GATT);
+                if (state == BluetoothProfile.STATE_CONNECTED) {
+                    boolean sent = main.sendCommandToPico("stop");
+                    if (!sent) {
+                        Toast.makeText(requireContext(), "Failed to send stop command", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void onCountdownTick(int secondsLeft) {
 
@@ -191,21 +226,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
 
     @Override
     public void onWorkoutCompleted() {
-        BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
-        if (getActivity() instanceof MainActivity) {
-            MainActivity main = (MainActivity) getActivity();
-            if (main.bluetoothGatt != null && bluetoothManager != null &&
-                    ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-
-                int state = bluetoothManager.getConnectionState(main.bluetoothGatt.getDevice(), BluetoothProfile.GATT);
-                if (state == BluetoothProfile.STATE_CONNECTED) {
-                    boolean sent = main.sendCommandToPico("stop");
-                    if (!sent) {
-                        Toast.makeText(requireContext(), "Failed to send stop command", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        }
+        sendStopCommandToPico();
         requireActivity().runOnUiThread(() -> {
             // Hide all workout-related UI elements
             forceValueTextView.setVisibility(View.GONE);
@@ -277,24 +298,10 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
     }
 
     @Override
-    public void onRestStarted(long totalRestDurationMillis) {
-        BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
-        if (getActivity() instanceof MainActivity) {
-            MainActivity main = (MainActivity) getActivity();
-            if (main.bluetoothGatt != null && bluetoothManager != null &&
-                    ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+    public void onRestStarted(long totalRestDurationMillis,boolean isStartCountdown) {
+        if (!isStartCountdown){
+            sendStopCommandToPico();
 
-                int state = bluetoothManager.getConnectionState(main.bluetoothGatt.getDevice(), BluetoothProfile.GATT);
-                if (customWorkout.getCurrentState() != CustomWorkout.WorkoutState.COUNTDOWN_BEFORE_START){
-                    if (state == BluetoothProfile.STATE_CONNECTED) {
-                        boolean sent = main.sendCommandToPico("stop");
-                        if (!sent) {
-                            Toast.makeText(requireContext(), "Failed to send stop command", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
-
-            }
         }
         requireActivity().runOnUiThread(() -> {
             if (restTimerTextView != null) restTimerTextView.setVisibility(View.VISIBLE);
@@ -312,13 +319,17 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
                 unitKgCustomWorkoutTextView.setVisibility(View.GONE);
             if (stopWorkoutButton != null) stopWorkoutButton.setVisibility(View.GONE);
 
-            onRestTimerUpdated(totalRestDurationMillis);
+            onRestTimerUpdated(totalRestDurationMillis,isStartCountdown);
         });
     }
 
     @Override
-    public void onRestTimerUpdated(long remainingRestTimeMillis) {
+    public void onRestTimerUpdated(long remainingRestTimeMillis,boolean isStartCountdown) {
         requireActivity().runOnUiThread(() -> {
+            int secondsLeft = (int) (remainingRestTimeMillis / 1000);
+            if (isStartCountdown && secondsLeft == 1){
+                sendStartCommandToPico();
+            }
             if (restTimerTextView != null) {
                 long seconds = remainingRestTimeMillis / 1000;
                 restTimerTextView.setText(String.format(Locale.getDefault(), "%02d", seconds));
@@ -356,21 +367,9 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
     }
 
     @Override
-    public void onRestEnded() {
-        BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
-        if (getActivity() instanceof MainActivity) {
-            MainActivity main = (MainActivity) getActivity();
-            if (main.bluetoothGatt != null && bluetoothManager != null &&
-                    ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-
-                int state = bluetoothManager.getConnectionState(main.bluetoothGatt.getDevice(), BluetoothProfile.GATT);
-                if (state == BluetoothProfile.STATE_CONNECTED) {
-                    boolean sent = main.sendCommandToPico("start");
-                    if (!sent) {
-                        Toast.makeText(requireContext(), "Failed to send start command", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
+    public void onRestEnded(boolean isStartCountdown) {
+        if (!isStartCountdown){
+            sendStartCommandToPico();
         }
         requireActivity().runOnUiThread(() -> {
             if (restTimerTextView != null) restTimerTextView.setVisibility(View.GONE);

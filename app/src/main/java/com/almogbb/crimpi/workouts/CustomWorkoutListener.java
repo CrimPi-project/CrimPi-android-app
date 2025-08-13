@@ -6,11 +6,11 @@ public interface CustomWorkoutListener extends WorkoutListener {
 
     void onExerciseTimerUpdated(long remainingTimeMillis);
 
-    void onRestStarted(long totalRestDurationMillis);
+    void onRestStarted(long totalRestDurationMillis,boolean isStartCountdown);
 
-    void onRestTimerUpdated(long remainingRestTimeMillis);
+    void onRestTimerUpdated(long remainingRestTimeMillis,boolean isStartCountdown);
 
     void onMinBodyPercentageUpdated(int minBodyPercentage);
 
-    void onRestEnded();
+    void onRestEnded(boolean isStartCountdown);
 }

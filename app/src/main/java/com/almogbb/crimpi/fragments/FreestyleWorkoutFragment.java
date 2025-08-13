@@ -154,6 +154,9 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
             startButton.setVisibility(View.GONE);
             countdownTextView.setVisibility(View.VISIBLE);
             if (secondsLeft > 0) {
+                if (secondsLeft == 1) {
+                    sendStartCommandToPico();
+                }
                 countdownTextView.setText(String.valueOf(secondsLeft));
             } else {
                 countdownTextView.setText(R.string.go);
@@ -162,8 +165,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
         });
     }
 
-    @Override
-    public void onWorkoutStarted() {
+    private void sendStartCommandToPico(){
         BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
         if (getActivity() instanceof MainActivity) {
             MainActivity main = (MainActivity) getActivity();
@@ -180,6 +182,9 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
                 }
             }
         }
+    }
+    @Override
+    public void onWorkoutStarted() {
         requireActivity().runOnUiThread(() -> {
             countdownTextView.setVisibility(View.GONE);
             forceTextView.setVisibility(View.VISIBLE);

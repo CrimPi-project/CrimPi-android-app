@@ -60,7 +60,7 @@ public class CustomWorkout extends Workout {
             restStartTime = startTimeMillis;
 
             if (customWorkoutListener != null) {
-                customWorkoutListener.onRestStarted(4000); // 3 sec countdown
+                customWorkoutListener.onRestStarted(4000,true); // 3 sec countdown
             }
 
             startWorkoutLoop();
@@ -87,7 +87,7 @@ public class CustomWorkout extends Workout {
         long remaining = countdownDuration - elapsed;
 
         if (customWorkoutListener != null) {
-            customWorkoutListener.onRestTimerUpdated(remaining);
+            customWorkoutListener.onRestTimerUpdated(remaining,true);
         }
 
         if (remaining <= 0) {
@@ -96,7 +96,7 @@ public class CustomWorkout extends Workout {
             updateCurrentExerciseDuration();
 
             if (customWorkoutListener != null) {
-                customWorkoutListener.onRestEnded();
+                customWorkoutListener.onRestEnded(true);
                 customWorkoutListener.onWorkoutStarted(); // Trigger the UI changes AFTER countdown
             }
         }
@@ -155,7 +155,7 @@ public class CustomWorkout extends Workout {
             currentState = WorkoutState.REST_AFTER_SET;
             restStartTime = currentTime;
             if (customWorkoutListener != null) {
-                customWorkoutListener.onRestStarted(restAfterSetMillis); // Use instance variable
+                customWorkoutListener.onRestStarted(restAfterSetMillis,false); // Use instance variable
             }
             return;
         }
@@ -196,7 +196,7 @@ public class CustomWorkout extends Workout {
                 currentState = WorkoutState.REST_BETWEEN_REPETITIONS;
                 restStartTime = currentTime;
                 if (customWorkoutListener != null) {
-                    customWorkoutListener.onRestStarted(restBetweenRepetitionsMillis);
+                    customWorkoutListener.onRestStarted(restBetweenRepetitionsMillis,false);
                 }
             } else {
                 // All repetitions for this exercise are done
@@ -212,7 +212,7 @@ public class CustomWorkout extends Workout {
                     restStartTime = currentTime;
 
                     if (customWorkoutListener != null) {
-                        customWorkoutListener.onRestStarted(restAfterSetMillis);
+                        customWorkoutListener.onRestStarted(restAfterSetMillis,false);
                     }
                 }
             }
@@ -222,7 +222,7 @@ public class CustomWorkout extends Workout {
     private void handleRestBetweenRepetitionsState(long currentTime) {
         long remainingRestTime = restBetweenRepetitionsMillis - (currentTime - restStartTime); // Use instance variable
         if (customWorkoutListener != null) {
-            customWorkoutListener.onRestTimerUpdated(remainingRestTime);
+            customWorkoutListener.onRestTimerUpdated(remainingRestTime,false);
         }
 
         if (remainingRestTime <= 0) {
@@ -233,7 +233,7 @@ public class CustomWorkout extends Workout {
             // NEW: Update duration for the next repetition (same exercise)
             updateCurrentExerciseDuration();
             if (customWorkoutListener != null) {
-                customWorkoutListener.onRestEnded();
+                customWorkoutListener.onRestEnded(false);
             }
         }
     }
@@ -243,7 +243,7 @@ public class CustomWorkout extends Workout {
         long remainingRestTime = restAfterSetMillis - (currentTime - restStartTime);
 
         if (customWorkoutListener != null) {
-            customWorkoutListener.onRestTimerUpdated(remainingRestTime);
+            customWorkoutListener.onRestTimerUpdated(remainingRestTime,false);
         }
 
         if (remainingRestTime <= 0) {
@@ -259,7 +259,7 @@ public class CustomWorkout extends Workout {
                 updateCurrentExerciseDuration();
 
                 if (customWorkoutListener != null) {
-                    customWorkoutListener.onRestEnded();
+                    customWorkoutListener.onRestEnded(false);
                 }
 
             } else {
