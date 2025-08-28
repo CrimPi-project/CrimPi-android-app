@@ -97,7 +97,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
         stopWorkoutButton.setOnClickListener(v -> {
             if (customWorkout != null) {
                 customWorkout.stop();
-                if (getActivity() instanceof MainActivity){
+                if (getActivity() instanceof MainActivity) {
                     MainActivity main = (MainActivity) getActivity();
                     MyWorkoutsFragment myWorkoutsFragment = main.myWorkoutsFragment;
                     main.loadFragment(myWorkoutsFragment);
@@ -137,21 +137,33 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
 
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
-
-        if (!hidden) {
-            if (workoutData != null) {
-                if (customWorkout == null || !customWorkout.isRunning()) {
-                    customWorkout = new CustomWorkout(workoutData, this, requireContext());
-                    customWorkout.start();
+        if (getActivity() instanceof MainActivity) {
+            MainActivity main = (MainActivity) getActivity();
+            if (!hidden) {
+                if (workoutData != null) {
+                    if (customWorkout == null || !customWorkout.isRunning()) {
+                        customWorkout = new CustomWorkout(workoutData, this, requireContext());
+                        customWorkout.start();
+                    }
+                    main.setUIVisibility(false);
                 }
-            }
-        }
-        else {
-            if (customWorkout != null) {
-                customWorkout.stop();
+            } else {
+                if (customWorkout != null) {
+                    customWorkout.stop();
+                }
+                main.setUIVisibility(true);
             }
         }
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setUIVisibility(false);
+        }
+    }
+
 
     // Method to update force from BLE (will be called from MainActivity or BLE service)
     public void updateForceFromBLE(float value) {
@@ -162,7 +174,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
 
     // --- CustomWorkoutListener Implementations ---
 
-    public void sendStartCommandToPico(){
+    public void sendStartCommandToPico() {
         BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
         if (getActivity() instanceof MainActivity) {
             MainActivity main = (MainActivity) getActivity();
@@ -180,7 +192,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
         }
     }
 
-    public void sendStopCommandToPico(){
+    public void sendStopCommandToPico() {
         BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
         if (getActivity() instanceof MainActivity) {
             MainActivity main = (MainActivity) getActivity();
@@ -298,8 +310,8 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
     }
 
     @Override
-    public void onRestStarted(long totalRestDurationMillis,boolean isStartCountdown) {
-        if (!isStartCountdown){
+    public void onRestStarted(long totalRestDurationMillis, boolean isStartCountdown) {
+        if (!isStartCountdown) {
             sendStopCommandToPico();
 
         }
@@ -319,15 +331,15 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
                 unitKgCustomWorkoutTextView.setVisibility(View.GONE);
             if (stopWorkoutButton != null) stopWorkoutButton.setVisibility(View.GONE);
 
-            onRestTimerUpdated(totalRestDurationMillis,isStartCountdown);
+            onRestTimerUpdated(totalRestDurationMillis, isStartCountdown);
         });
     }
 
     @Override
-    public void onRestTimerUpdated(long remainingRestTimeMillis,boolean isStartCountdown) {
+    public void onRestTimerUpdated(long remainingRestTimeMillis, boolean isStartCountdown) {
         requireActivity().runOnUiThread(() -> {
             int secondsLeft = (int) (remainingRestTimeMillis / 1000);
-            if (isStartCountdown && secondsLeft == 1){
+            if (isStartCountdown && secondsLeft == 1) {
                 sendStartCommandToPico();
             }
             if (restTimerTextView != null) {
@@ -368,7 +380,7 @@ public class CustomWorkoutFragment extends Fragment implements CustomWorkoutList
 
     @Override
     public void onRestEnded(boolean isStartCountdown) {
-        if (!isStartCountdown){
+        if (!isStartCountdown) {
             sendStartCommandToPico();
         }
         requireActivity().runOnUiThread(() -> {

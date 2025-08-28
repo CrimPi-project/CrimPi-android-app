@@ -234,6 +234,11 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
                     } else if (activeFragment instanceof FreestyleWorkoutFragment) {
                         ((FreestyleWorkoutFragment) activeFragment).resetWorkoutState();
                         Toast.makeText(MainActivity.this, R.string.disconnected_from_device, Toast.LENGTH_SHORT).show();
+                        setUIVisibility(true);
+                    }
+                    else if (activeFragment instanceof CustomWorkoutFragment){
+                        ((CustomWorkoutFragment) activeFragment).stopWorkout();
+                        loadFragment(myWorkoutsFragment);
                     }
                 });
                 if (bluetoothGatt != null) {
@@ -992,6 +997,25 @@ public class MainActivity extends AppCompatActivity implements BodyWeightDialogF
                 }
             } else {
                 Log.d(TAG, "Skipping non-PicoW device: " + currentDeviceName + " (" + currentDeviceAddress + ")");
+            }
+        }
+    }
+
+    public void setUIVisibility(boolean showUI) {
+        if (getSupportActionBar() != null) {
+            if (showUI) {
+                getSupportActionBar().show();
+            } else {
+                getSupportActionBar().hide();
+            }
+        }
+
+        if (drawerLayout != null) {
+            if (showUI) {
+                drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+            } else {
+                drawerLayout.closeDrawers(); // Ensure it's closed
+                drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED); // Prevent opening
             }
         }
     }

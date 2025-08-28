@@ -105,6 +105,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
                     if (!workout.isRunning()) {
                         if (state == BluetoothProfile.STATE_CONNECTED) {
                             workout.start();
+                            main.setUIVisibility(false);
                         } else {
                             Toast.makeText(requireContext(), R.string.not_connected_to_a_crimpi_device_please_connect, Toast.LENGTH_SHORT).show();
                         }
@@ -112,6 +113,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
                     } else {
                         resetWorkoutState();
                         workout.stop();
+                        main.setUIVisibility(true);
                     }
                 } else {
                     Toast.makeText(requireContext(), R.string.not_connected_to_a_crimpi_device_please_connect, Toast.LENGTH_SHORT).show();
