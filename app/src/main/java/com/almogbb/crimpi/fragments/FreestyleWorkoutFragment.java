@@ -93,7 +93,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
 
 
         // Set initial text for received number
-        forceTextView.setText(R.string.n_a);
+        forceTextView.setText(R.string.zero);
 
         startButton.setOnClickListener(v -> {
             BluetoothManager bluetoothManager = (BluetoothManager) requireContext().getSystemService(Context.BLUETOOTH_SERVICE);
@@ -156,7 +156,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
             startButton.setVisibility(View.GONE);
             countdownTextView.setVisibility(View.VISIBLE);
             if (secondsLeft > 0) {
-                if (secondsLeft == 1) {
+                if (secondsLeft == 2) {
                     sendStartCommandToPico();
                 }
                 countdownTextView.setText(String.valueOf(secondsLeft));
@@ -194,7 +194,7 @@ public class FreestyleWorkoutFragment extends Fragment implements WorkoutListene
             forceBar.setVisibility(View.VISIBLE);
             startButton.setText(R.string.stop_workout);
             startButton.setVisibility(View.VISIBLE);
-            forceTextView.setText(R.string.n_a);
+            forceTextView.setText(R.string.zero);
             unitKgTextView.setVisibility(View.VISIBLE);
             forceTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_text_color));
             bodyPercentageTextView.setVisibility(View.VISIBLE);
